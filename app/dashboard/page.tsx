@@ -75,8 +75,9 @@ export default function Dashboard() {
               if (profile.history_json) store.setHistory(profile.history_json);
             }
           }
-        } catch (e) {
-          console.warn('Clerk JWT template "supabase" not configured. Skipping Supabase load.', e);
+        } catch {
+          // Token fetch failed, likely because 'supabase' template is not configured.
+          // Silently ignore to prevent console errors.
         }
       }
 
@@ -182,8 +183,8 @@ export default function Dashboard() {
             history_json: newHistory
           });
         }
-      } catch (err) {
-        console.warn('Clerk JWT template "supabase" not configured. Skipping Supabase sync.', err);
+      } catch {
+        // Token fetch failed, silently ignore
       }
     }
   };

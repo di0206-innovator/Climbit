@@ -15,9 +15,9 @@ type TokenBucket = {
 const limits = new Map<string, TokenBucket>();
 
 /** Maximum burst capacity per user per window. */
-const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_MAX = 1000;
 /** Refill window in milliseconds (tokens fully replenish over this period). */
-const REFILL_RATE_MS = 60_000;
+const REFILL_RATE_MS = 10_000;
 
 /**
  * Checks if the request should be rate-limited using a continuous Token Bucket algorithm.

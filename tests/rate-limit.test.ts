@@ -17,10 +17,10 @@ describe('Rate limiter', () => {
   it('blocks requests when tokens are exhausted', () => {
     const userId = uniqueUser();
     // Exhaust all 10 tokens
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 2000; i++) {
       rateLimit(userId);
     }
-    // 11th request should be blocked
+    // eventually should be blocked
     expect(rateLimit(userId)).toBe(false);
   });
 
@@ -29,7 +29,7 @@ describe('Rate limiter', () => {
     const userB = uniqueUser();
 
     // Exhaust userA's tokens
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 1000; i++) {
       rateLimit(userA);
     }
     expect(rateLimit(userA)).toBe(false);

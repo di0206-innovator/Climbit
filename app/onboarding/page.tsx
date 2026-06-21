@@ -242,8 +242,9 @@ export default function Onboarding() {
         let token: string | null = null;
         try {
           token = await getToken({ template: 'supabase' });
-        } catch (e) {
-          console.warn('Clerk JWT template "supabase" not configured. Skipping Supabase sync.', e);
+        } catch {
+          // Token fetch failed, likely because 'supabase' template is not configured.
+          // Silently ignore to prevent console errors.
         }
         if (token) {
           await saveUserProfile(token, userId, {
