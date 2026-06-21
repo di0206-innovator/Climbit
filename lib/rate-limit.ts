@@ -1,6 +1,8 @@
 /**
  * Simple in-memory rate limiter for server actions.
- * NOTE: In a multi-node production environment (like Vercel Edge), 
+ * Uses a continuous Token Bucket algorithm with fractional refill.
+ *
+ * NOTE: In a multi-node production environment (like Vercel Edge),
  * this should be replaced with Upstash Redis or similar distributed store.
  * For Hackathon demonstration, this showcases enterprise-grade security intent.
  */
@@ -12,13 +14,15 @@ type TokenBucket = {
 
 const limits = new Map<string, TokenBucket>();
 
-const RATE_LIMIT_MAX = 5; // Max 5 tokens
-const REFILL_RATE_MS = 60000; // Refill window of 60 seconds
+/** Maximum burst capacity per user per window. */
+const RATE_LIMIT_MAX = 10;
+/** Refill window in milliseconds (tokens fully replenish over this period). */
+const REFILL_RATE_MS = 60_000;
 
 /**
  * Checks if the request should be rate-limited using a continuous Token Bucket algorithm.
  * Refills tokens fractionally based on the exact milliseconds elapsed since the last request.
- * 
+ *
  * @param identifier Unique identifier for the user (e.g. userId)
  * @returns boolean true if the request is allowed, false if rate limited
  */
@@ -48,4 +52,3 @@ export function rateLimit(identifier: string): boolean {
 
   return false; // Rate limited
 }
-

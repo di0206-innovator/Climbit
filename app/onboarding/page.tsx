@@ -12,45 +12,11 @@ import {
 import Button from '../../components/ui/button';
 import Progress from '../../components/ui/progress';
 import { OnboardingAnswers, FootprintHistoryEntry } from '../../types';
-
-const generateMockHistory = (finalAnswers: OnboardingAnswers, currentFootprint: number): FootprintHistoryEntry[] => {
-  const historyEntries: FootprintHistoryEntry[] = [];
-  const currentDate = new Date();
-  
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    
-    let factor = 1.0;
-    const answersDelta = { ...finalAnswers };
-    if (i > 0) {
-      factor = 1.0 + (i * 0.12) + (Math.random() * 0.04 - 0.02);
-      if (i >= 4) {
-        answersDelta.commuteMode = 'personal_vehicle';
-        answersDelta.dietPattern = 'meat_heavy';
-        answersDelta.electricityUsageProxy = 'high';
-      } else if (i >= 2) {
-        answersDelta.commuteMode = 'cab';
-        answersDelta.dietPattern = 'flexitarian';
-        answersDelta.electricityUsageProxy = 'medium';
-      }
-    }
-    
-    const monthlyTotal = Math.round(currentFootprint * factor);
-    
-    historyEntries.push({
-      id: `mock-hist-${dateStr}-${Math.random().toString(36).substr(2, 9)}`,
-      date: dateStr,
-      monthlyTotal,
-      answers: answersDelta
-    });
-  }
-  return historyEntries;
-};
 import { onboardingSchema } from '../../lib/validation/schemas';
 import { calculateFootprint, rankActions, generateChallenge } from '../../lib/carbon';
 import { saveUserProfile } from '../../lib/supabase';
 import { useClimbitStore } from '../../lib/store';
+import { generateMockHistory } from '../../lib/history';
 
 interface QuestionOption {
   value: string;
@@ -273,7 +239,12 @@ export default function Onboarding() {
 
       // If authenticated, sync to Supabase
       if (userId) {
-        const token = await getToken({ template: 'supabase' });
+        let token: string | null = null;
+        try {
+          token = await getToken({ template: 'supabase' });
+        } catch (e) {
+          console.warn('Clerk JWT template "supabase" not configured. Skipping Supabase sync.', e);
+        }
         if (token) {
           await saveUserProfile(token, userId, {
             answers_json: finalAnswers,

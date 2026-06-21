@@ -17,6 +17,7 @@ import {
   getRecommendationExplanationAction
 } from '../actions/ai';
 import { loadUserProfile, saveUserProfile } from '../../lib/supabase';
+import { generateMockHistory } from '../../lib/history';
 
 // Modular Components
 import CarbonOverview from '../../components/dashboard/CarbonOverview';
@@ -35,37 +36,6 @@ const HistoryChart = dynamic(() => import('../../components/HistoryChart'), {
   ssr: false,
   loading: () => <div className="h-[300px] w-full flex items-center justify-center text-slate-700 text-sm font-bold">Loading history chart...</div>
 });
-
-const generateMockHistory = (finalAnswers: OnboardingAnswers, currentFootprint: number): FootprintHistoryEntry[] => {
-  const historyEntries: FootprintHistoryEntry[] = [];
-  const currentDate = new Date();
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    let factor = 1.0;
-    const answersDelta = { ...finalAnswers };
-    if (i > 0) {
-      factor = 1.0 + (i * 0.12) + (Math.random() * 0.04 - 0.02);
-      if (i >= 4) {
-        answersDelta.commuteMode = 'personal_vehicle';
-        answersDelta.dietPattern = 'meat_heavy';
-        answersDelta.electricityUsageProxy = 'high';
-      } else if (i >= 2) {
-        answersDelta.commuteMode = 'cab';
-        answersDelta.dietPattern = 'flexitarian';
-        answersDelta.electricityUsageProxy = 'medium';
-      }
-    }
-    const monthlyTotal = Math.round(currentFootprint * factor);
-    historyEntries.push({
-      id: `mock-hist-${dateStr}-${Math.random().toString(36).substr(2, 9)}`,
-      date: dateStr,
-      monthlyTotal,
-      answers: answersDelta
-    });
-  }
-  return historyEntries;
-};
 
 export default function Dashboard() {
   const router = useRouter();
@@ -106,7 +76,7 @@ export default function Dashboard() {
             }
           }
         } catch (e) {
-          console.error("Failed to load from Supabase:", e);
+          console.warn('Clerk JWT template "supabase" not configured. Skipping Supabase load.', e);
         }
       }
 
@@ -213,7 +183,7 @@ export default function Dashboard() {
           });
         }
       } catch (err) {
-        console.error('Failed to sync history with Supabase:', err);
+        console.warn('Clerk JWT template "supabase" not configured. Skipping Supabase sync.', err);
       }
     }
   };

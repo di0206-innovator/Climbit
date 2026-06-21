@@ -2,8 +2,8 @@
 'use server';
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { getUserId } from '../../lib/auth';
 import { rateLimit } from '../../lib/rate-limit';
 
 export interface VisionExtractionResult {
@@ -13,21 +13,14 @@ export interface VisionExtractionResult {
   confidence: number;
 }
 
-async function getUserId(): Promise<string> {
-  if (!process.env.CLERK_SECRET_KEY) {
-    return 'mock-user-123';
-  }
-  const { userId } = await auth();
-  return userId || '';
-}
-
 export async function extractCarbonFromImage(base64Image: string, mimeType: string): Promise<VisionExtractionResult> {
   const userId = await getUserId();
   if (!userId) throw new Error('Unauthorized');
   if (!rateLimit(userId)) throw new Error('Rate limit exceeded');
 
-  // Input validation
-  const base64Validation = z.string().min(1).safeParse(base64Image);
+  // Input validation — enforce max payload size (~10MB base64) to prevent abuse
+  const MAX_BASE64_LENGTH = 10 * 1024 * 1024;
+  const base64Validation = z.string().min(1).max(MAX_BASE64_LENGTH).safeParse(base64Image);
   const mimeTypeValidation = z.string().regex(/^image\/(png|jpeg|jpg|webp|gif)$/).safeParse(mimeType);
   if (!base64Validation.success || !mimeTypeValidation.success) {
     throw new Error('Invalid image data or format.');

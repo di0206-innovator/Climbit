@@ -127,25 +127,7 @@ export default function AILoggerPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-2 space-y-4">
-          {/* Self-contained micro-animations */}
-          <style dangerouslySetInnerHTML={{__html: `
-            @keyframes scannerSweep {
-              0% { top: 0%; }
-              50% { top: 100%; }
-              100% { top: 0%; }
-            }
-            @keyframes soundWave {
-              0%, 100% { transform: scaleY(0.4); }
-              50% { transform: scaleY(1.3); }
-            }
-            .animate-sweep {
-              animation: scannerSweep 2s linear infinite;
-            }
-            .wave-bar {
-              animation: soundWave 1.2s ease-in-out infinite;
-              transform-origin: center;
-            }
-          `}} />
+          {/* Self-contained micro-animations are now in globals.css */}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="relative border-2 border-dashed border-black rounded-xl p-4 bg-white text-center hover:bg-slate-50 transition-colors flex flex-col items-center justify-center overflow-hidden">

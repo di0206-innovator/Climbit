@@ -1,7 +1,7 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { getUserId } from '../../lib/auth';
 import { rateLimit } from '../../lib/rate-limit';
 import { OnboardingAnswers } from '../../types';
 import { calculateFootprint, rankActions } from '../../lib/carbon';
@@ -18,14 +18,6 @@ import {
   ShareCaption,
   WeeklyReflection
 } from '../../lib/gemini';
-
-async function getUserId(): Promise<string> {
-  if (!process.env.CLERK_SECRET_KEY) {
-    return 'mock-user-123';
-  }
-  const { userId } = await auth();
-  return userId || '';
-}
 
 export async function getProfileSummaryAction(answers: OnboardingAnswers): Promise<ProfileSummary> {
   const userId = await getUserId();
@@ -47,7 +39,7 @@ export async function getRecommendationExplanationAction(answers: OnboardingAnsw
 
   // Input validation
   const validation = onboardingSchema.safeParse(answers);
-  const actionIdValidation = z.string().min(1).safeParse(actionId);
+  const actionIdValidation = z.string().min(1).max(100).safeParse(actionId);
   if (!validation.success || !actionIdValidation.success) throw new Error('Invalid input data');
 
   const footprint = calculateFootprint(validation.data);
@@ -65,7 +57,7 @@ export async function getObjectionHandlerAction(answers: OnboardingAnswers, reje
 
   // Input validation
   const validation = onboardingSchema.safeParse(answers);
-  const rejectedActionIdValidation = z.string().min(1).safeParse(rejectedActionId);
+  const rejectedActionIdValidation = z.string().min(1).max(100).safeParse(rejectedActionId);
   if (!validation.success || !rejectedActionIdValidation.success) throw new Error('Invalid input data');
 
   const footprint = calculateFootprint(validation.data);
@@ -84,8 +76,8 @@ export async function getShareCaptionAction(answers: OnboardingAnswers, personaT
 
   // Input validation
   const validation = onboardingSchema.safeParse(answers);
-  const personaValidation = z.string().min(1).safeParse(personaTitle);
-  const actionValidation = z.string().min(1).safeParse(topActionTitle);
+  const personaValidation = z.string().min(1).max(200).safeParse(personaTitle);
+  const actionValidation = z.string().min(1).max(200).safeParse(topActionTitle);
   if (!validation.success || !personaValidation.success || !actionValidation.success) throw new Error('Invalid input data');
 
   const footprint = calculateFootprint(validation.data);
