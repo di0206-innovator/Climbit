@@ -171,8 +171,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
 
             {/* Commute Mode */}
             <div className="space-y-1.5">
-              <label className="text-slate-950 uppercase tracking-wider text-[10px] font-black">Commute Mode</label>
-              <div className="grid grid-cols-4 gap-2">
+              <span id="log-commute-label" className="text-slate-950 uppercase tracking-wider text-[10px] font-black block">Commute Mode</span>
+              <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-labelledby="log-commute-label">
                 {[
                   { val: 'walk_cycle', label: 'Walk/Bike', icon: Bike },
                   { val: 'public_transit', label: 'Transit', icon: Bus },
@@ -185,6 +185,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={isSel}
                       onClick={() => setCommute(opt.val as OnboardingAnswers['commuteMode'])}
                       className={`p-2 border-2 border-black rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                         isSel ? 'bg-[#FFD53D] shadow-none translate-y-[1px]' : 'bg-white hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#000000]'
@@ -200,8 +202,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
 
             {/* Diet Pattern */}
             <div className="space-y-1.5">
-              <label className="text-slate-950 uppercase tracking-wider text-[10px] font-black">Diet</label>
-              <div className="grid grid-cols-4 gap-2">
+              <span id="log-diet-label" className="text-slate-950 uppercase tracking-wider text-[10px] font-black block">Diet</span>
+              <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-labelledby="log-diet-label">
                 {[
                   { val: 'vegan', label: 'Vegan', icon: Carrot },
                   { val: 'vegetarian', label: 'Veg', icon: Egg },
@@ -214,6 +216,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={isSel}
                       onClick={() => setDiet(opt.val as OnboardingAnswers['dietPattern'])}
                       className={`p-2 border-2 border-black rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                         isSel ? 'bg-[#FFD53D] shadow-none translate-y-[1px]' : 'bg-white hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#000000]'
@@ -229,8 +233,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
 
             {/* AC Usage */}
             <div className="space-y-1.5">
-              <label className="text-slate-950 uppercase tracking-wider text-[10px] font-black">Air Conditioning</label>
-              <div className="grid grid-cols-4 gap-2">
+              <span id="log-ac-label" className="text-slate-950 uppercase tracking-wider text-[10px] font-black block">Air Conditioning</span>
+              <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-labelledby="log-ac-label">
                 {[
                   { val: 'none', label: 'Fan Only', icon: Wind },
                   { val: 'low', label: 'Low', icon: Wind },
@@ -243,6 +247,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={isSel}
                       onClick={() => setAc(opt.val as OnboardingAnswers['acUsageProxy'])}
                       className={`p-2 border-2 border-black rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                         isSel ? 'bg-[#FFD53D] shadow-none translate-y-[1px]' : 'bg-white hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#000000]'
@@ -258,8 +264,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
 
             {/* Electricity Usage */}
             <div className="space-y-1.5">
-              <label className="text-slate-950 uppercase tracking-wider text-[10px] font-black">Household Electricity</label>
-              <div className="grid grid-cols-3 gap-2">
+              <span id="log-electricity-label" className="text-slate-950 uppercase tracking-wider text-[10px] font-black block">Household Electricity</span>
+              <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="log-electricity-label">
                 {[
                   { val: 'low', label: 'Low Load', icon: Zap },
                   { val: 'medium', label: 'Standard', icon: Zap },
@@ -271,6 +277,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={isSel}
                       onClick={() => setElectricity(opt.val as OnboardingAnswers['electricityUsageProxy'])}
                       className={`p-2 border-2 border-black rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                         isSel ? 'bg-[#FFD53D] shadow-none translate-y-[1px]' : 'bg-white hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#000000]'
@@ -286,8 +294,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
 
             {/* Delivery Frequency */}
             <div className="space-y-1.5">
-              <label className="text-slate-950 uppercase tracking-wider text-[10px] font-black">Food & Package Delivery</label>
-              <div className="grid grid-cols-4 gap-2">
+              <span id="log-delivery-label" className="text-slate-950 uppercase tracking-wider text-[10px] font-black block">Food & Package Delivery</span>
+              <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-labelledby="log-delivery-label">
                 {[
                   { val: 'rarely', label: 'Rarely', icon: Package },
                   { val: 'weekly', label: 'Weekly', icon: ShoppingBag },
@@ -300,6 +308,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={isSel}
                       onClick={() => setDelivery(opt.val as OnboardingAnswers['deliveryFrequency'])}
                       className={`p-2 border-2 border-black rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                         isSel ? 'bg-[#FFD53D] shadow-none translate-y-[1px]' : 'bg-white hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#000000]'
@@ -315,8 +325,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
 
             {/* Travel Frequency */}
             <div className="space-y-1.5">
-              <label className="text-slate-950 uppercase tracking-wider text-[10px] font-black">Long Distance Flights</label>
-              <div className="grid grid-cols-3 gap-2">
+              <span id="log-travel-label" className="text-slate-950 uppercase tracking-wider text-[10px] font-black block">Long Distance Flights</span>
+              <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-labelledby="log-travel-label">
                 {[
                   { val: 'rarely', label: 'Rarely', icon: Train },
                   { val: 'occasionally', label: '1-3 flights/yr', icon: Map },
@@ -328,6 +338,8 @@ export default function LogFootprintModal({ isOpen, onClose, onLogged }: LogFoot
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={isSel}
                       onClick={() => setTravel(opt.val as OnboardingAnswers['travelFrequency'])}
                       className={`p-2 border-2 border-black rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                         isSel ? 'bg-[#FFD53D] shadow-none translate-y-[1px]' : 'bg-white hover:bg-slate-50 shadow-[1.5px_1.5px_0px_0px_#000000]'

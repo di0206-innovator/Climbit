@@ -9,6 +9,11 @@ interface HistoryChartProps {
 }
 
 export default function HistoryChart({ history }: HistoryChartProps) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Map monthly data to readable month names (e.g. "2026-05" -> "May 26")
   const data = history.map((entry) => {
     const [year, month] = entry.date.split('-');
@@ -20,11 +25,17 @@ export default function HistoryChart({ history }: HistoryChartProps) {
     };
   });
 
+  if (!mounted) {
+    return <div className="w-full h-[300px]" id="history-chart-wrapper" />;
+  }
+
   return (
     <div className="w-full h-[300px]" id="history-chart-wrapper">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="99%" height="100%" minHeight={200}>
         <LineChart
           data={data}
+          width={500}
+          height={300}
           margin={{
             top: 20,
             right: 30,

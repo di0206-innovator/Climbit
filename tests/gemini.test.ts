@@ -14,24 +14,32 @@ vi.mock('@google/generative-ai');
 describe('gemini API utilities', () => {
   const baseAnswers: OnboardingAnswers = {
     role: 'professional',
-    livingStyle: 'apartment',
+    livingStyle: 'independent',
     commuteMode: 'public_transit',
     dietPattern: 'vegetarian',
+    deliveryFrequency: 'rarely',
+    travelFrequency: 'rarely',
+    acUsageProxy: 'none',
     electricityUsageProxy: 'low'
   };
 
   const baseFootprint: FootprintResult = {
     monthlyTotal: 150,
-    categories: {
-      commute: 20,
-      diet: 50,
-      electricity: 30,
-      purchases: 50
-    },
+    annualTotal: 1800,
+    categories: [
+      { name: 'diet', label: 'Diet', value: 50, percentage: 33, description: '', estimationNote: '' },
+      { name: 'electricity', label: 'Electricity', value: 30, percentage: 20, description: '', estimationNote: '' }
+    ],
     biggestDriver: 'diet',
     personaTitle: 'Veggie Saver',
     personaSummary: 'Great job!',
-    recommendedActions: []
+    coachTip: 'Keep it up',
+    coachTips: ['Keep it up'],
+    carbonGrade: 'A',
+    carbonGradeLabel: 'Low',
+    carbonGradeColor: 'green',
+    equivalences: [],
+    categoryGrades: []
   };
 
   const baseAction: RecommendationResult = {
@@ -40,11 +48,14 @@ describe('gemini API utilities', () => {
     description: 'Switch to a plant based diet.',
     category: 'diet',
     baseCarbonSavings: 50,
+    baseMoneySavings: 10,
     effort: 'medium',
     cost: 'low',
-    upfrontCostAmount: 0,
-    paybackPeriodYears: 0,
-    oneTimeSavings: false
+    confidence: 0.9,
+    whyItMatters: 'Less animal products',
+    lifestyleTags: [],
+    roiScore: 85,
+    relevanceReason: 'Directly targets diet'
   };
 
   let mockGenerateContent: any;

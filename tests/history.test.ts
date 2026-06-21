@@ -5,9 +5,12 @@ import { OnboardingAnswers } from '../types';
 describe('history utilities', () => {
   const baseAnswers: OnboardingAnswers = {
     role: 'professional',
-    livingStyle: 'apartment',
+    livingStyle: 'independent',
     commuteMode: 'public_transit',
     dietPattern: 'vegetarian',
+    deliveryFrequency: 'rarely',
+    travelFrequency: 'rarely',
+    acUsageProxy: 'none',
     electricityUsageProxy: 'low'
   };
 

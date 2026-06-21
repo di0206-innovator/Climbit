@@ -9,6 +9,11 @@ interface FootprintChartProps {
 }
 
 export default function FootprintChart({ categories }: FootprintChartProps) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Sort categories by emission value descending for better visual structure
   const data = [...categories]
     .sort((a, b) => b.value - a.value)
@@ -37,11 +42,17 @@ export default function FootprintChart({ categories }: FootprintChartProps) {
     return null;
   };
 
+  if (!mounted) {
+    return <div className="w-full h-[260px] md:h-[300px]" role="img" aria-label="Carbon footprint emission breakdown chart" />;
+  }
+
   return (
     <div className="w-full h-[260px] md:h-[300px]" role="img" aria-label="Carbon footprint emission breakdown chart">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="99%" height="100%" minHeight={200}>
         <BarChart
           data={data}
+          width={500}
+          height={300}
           layout="vertical"
           margin={{ top: 10, right: 10, left: -10, bottom: 5 }}
         >

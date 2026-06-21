@@ -8,6 +8,11 @@ interface PredictiveChartProps {
 }
 
 export default function PredictiveChart({ currentMonthly }: PredictiveChartProps) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Generate simple projection data based on current footprint.
   const data = [
     { year: new Date().getFullYear(), projected: currentMonthly * 12, target: currentMonthly * 12 },
@@ -18,11 +23,17 @@ export default function PredictiveChart({ currentMonthly }: PredictiveChartProps
     { year: new Date().getFullYear() + 5, projected: Math.round(currentMonthly * 12 * 0.65), target: 0 },
   ];
 
+  if (!mounted) {
+    return <div className="w-full h-[300px]" />;
+  }
+
   return (
     <div className="w-full h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="99%" height="100%" minHeight={200}>
         <LineChart
           data={data}
+          width={500}
+          height={300}
           margin={{
             top: 20,
             right: 30,
