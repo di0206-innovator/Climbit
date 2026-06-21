@@ -1,0 +1,320 @@
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  GraduationCap, Briefcase, User, Home, Building2, School, 
+  Bike, Bus, Car, Carrot, Egg, Soup, Drumstick,
+  Package, ShoppingBag, Truck, Zap, Train, Plane, Map,
+  Wind, Snowflake, Sparkles, ArrowLeft
+} from 'lucide-react';
+import Button from '../../components/ui/button';
+import Progress from '../../components/ui/progress';
+import { OnboardingAnswers } from '../../types';
+import { onboardingSchema } from '../../lib/validation/schemas';
+import { getAIInsightsAction } from '../actions/ai';
+
+interface QuestionOption {
+  value: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+}
+
+interface Question {
+  key: keyof OnboardingAnswers;
+  question: string;
+  description: string;
+  options: QuestionOption[];
+}
+
+const QUESTIONS: Question[] = [
+  {
+    key: 'role',
+    question: 'What is your primary daily occupation?',
+    description: 'This helps us understand your weekday commute routines and typical schedule.',
+    options: [
+      { value: 'student', label: 'Student', icon: GraduationCap, description: 'University, high school, or vocational studies.' },
+      { value: 'professional', label: 'Working Professional', icon: Briefcase, description: 'Office, hybrid, or remote corporate roles.' },
+      { value: 'other', label: 'Other', icon: User, description: 'Freelancer, homemaker, retired, or custom schedule.' }
+    ]
+  },
+  {
+    key: 'livingStyle',
+    question: 'What is your current living arrangement?',
+    description: 'Household size and structure significantly affect heating, cooling, and shared energy.',
+    options: [
+      { value: 'hostel', label: 'Hostel / Dormitory', icon: School, description: 'Shared student housing or boarding room.' },
+      { value: 'family_home', label: 'Family Home', icon: Home, description: 'Living with parents, children, or extended family.' },
+      { value: 'independent', label: 'Independent Living', icon: Building2, description: 'Living alone, with a partner, or housemates.' }
+    ]
+  },
+  {
+    key: 'commuteMode',
+    question: 'How do you primarily commute to work or classes?',
+    description: 'Daily transportation is typically one of the highest individual emission sources.',
+    options: [
+      { value: 'walk_cycle', label: 'Walk or Cycle', icon: Bike, description: 'Zero-emission muscle power. Best for local trips.' },
+      { value: 'public_transit', label: 'Public Transit', icon: Bus, description: 'Metro trains, commuter rails, or local buses.' },
+      { value: 'personal_vehicle', label: 'Personal Vehicle', icon: Car, description: 'Single passenger driving, motorbike, or hybrid cars.' },
+      { value: 'cab', label: 'Cab or Ride-Hailing', icon: Truck, description: 'Taxis, Uber, Lyft, or similar personal ride services.' }
+    ]
+  },
+  {
+    key: 'dietPattern',
+    question: 'Which option best describes your daily diet?',
+    description: 'Food production (especially livestock) has a heavy carbon and land-use footprint.',
+    options: [
+      { value: 'vegan', label: 'Plant-Based / Vegan', icon: Carrot, description: 'Zero animal product consumption.' },
+      { value: 'vegetarian', label: 'Vegetarian', icon: Egg, description: 'No meat, but includes dairy, honey, and eggs.' },
+      { value: 'flexitarian', label: 'Flexitarian / Low-Meat', icon: Soup, description: 'Mostly plant-based, eating meat occasionally.' },
+      { value: 'meat_heavy', label: 'Meat-Heavy', icon: Drumstick, description: 'Frequent meat consumption, including beef and pork.' }
+    ]
+  },
+  {
+    key: 'deliveryFrequency',
+    question: 'How often do you order food or package deliveries?',
+    description: 'Logistical sorting, single-use containers, and courier trips compound quickly.',
+    options: [
+      { value: 'rarely', label: 'Rarely / Never', icon: Package, description: 'Cooking at home, dining out, or picking up in person.' },
+      { value: 'weekly', label: 'Weekly', icon: ShoppingBag, description: '1–2 delivery boxes or restaurant orders per week.' },
+      { value: 'multiple_times_weekly', label: 'Few times a week', icon: Truck, description: '3–4 deliveries weekly. Regular ordering habit.' },
+      { value: 'daily', label: 'Daily', icon: Zap, description: 'Daily food delivery or frequent e-commerce packages.' }
+    ]
+  },
+  {
+    key: 'travelFrequency',
+    question: 'How often do you travel by flight or long-distance transit?',
+    description: 'Aviation and long-distance travel burn significant fossil fuels.',
+    options: [
+      { value: 'rarely', label: 'Rarely', icon: Train, description: 'Mainly local travel, high-speed rail, or zero flights.' },
+      { value: 'occasionally', label: 'Occasionally', icon: Map, description: '1–3 domestic or international flights per year.' },
+      { value: 'frequently', label: 'Frequently', icon: Plane, description: 'Monthly flights for business or leisure.' }
+    ]
+  },
+  {
+    key: 'acUsageProxy',
+    question: 'How much do you run your Air Conditioner?',
+    description: 'Cooling units draw heavy grid electricity loads during hot seasons.',
+    options: [
+      { value: 'none', label: 'None / Fan only', icon: Wind, description: 'Rely on natural ventilation or simple ceiling fans.' },
+      { value: 'low', label: 'Low (1–2 hrs/day)', icon: Wind, description: 'Short cooling bursts, mainly before bedtime.' },
+      { value: 'medium', label: 'Medium (3–6 hrs/day)', icon: Snowflake, description: 'Consistent cooling during warm hours of the day.' },
+      { value: 'high', label: 'High (6+ hrs/day)', icon: Snowflake, description: 'Nearly constant cooling active in your living area.' }
+    ]
+  },
+  {
+    key: 'electricityUsageProxy',
+    question: 'What is your home electricity profile?',
+    description: 'Reflects your general household appliance load and electricity spending.',
+    options: [
+      { value: 'low', label: 'Low / Energy-Conscious', icon: Zap, description: 'Unplugging idle gear, using energy-saver LEDs.' },
+      { value: 'medium', label: 'Medium / Standard', icon: Zap, description: 'Standard consumer profile with typical active appliances.' },
+      { value: 'high', label: 'High / Heavy Load', icon: Zap, description: 'Large home, high-load geysers, multiple TVs or servers.' }
+    ]
+  }
+];
+
+export default function Onboarding() {
+  const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [answers, setAnswers] = useState<Partial<OnboardingAnswers>>({});
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Analysing your answers...');
+  const optionsRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const question = QUESTIONS[currentStep];
+  const progressPercent = Math.round(((currentStep + 1) / QUESTIONS.length) * 100);
+
+  // Focus on the first option when step changes to support keyboard navigation
+  useEffect(() => {
+    if (optionsRefs.current[0]) {
+      optionsRefs.current[0].focus();
+    }
+  }, [currentStep]);
+
+  const handleSelect = (value: string) => {
+    const updatedAnswers = { ...answers, [question.key]: value };
+    setAnswers(updatedAnswers);
+
+    // Auto-advance with a slight delay for better touch/click feedback
+    setTimeout(() => {
+      if (currentStep < QUESTIONS.length - 1) {
+        setCurrentStep((prev) => prev + 1);
+      } else {
+        handleSubmit(updatedAnswers as OnboardingAnswers);
+      }
+    }, 150);
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, idx: number, value: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleSelect(value);
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIdx = (idx + 1) % question.options.length;
+      optionsRefs.current[nextIdx]?.focus();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIdx = (idx - 1 + question.options.length) % question.options.length;
+      optionsRefs.current[prevIdx]?.focus();
+    } else if (e.key === 'Backspace' && currentStep > 0) {
+      e.preventDefault();
+      handleBack();
+    }
+  };
+
+  const handleSubmit = async (finalAnswers: OnboardingAnswers) => {
+    // Validate with Zod schema
+    const validation = onboardingSchema.safeParse(finalAnswers);
+    if (!validation.success) {
+      alert('Some inputs were invalid. Please review your answers.');
+      return;
+    }
+
+    setLoading(true);
+    setLoadingMessage('Prioritising custom actions...');
+
+    try {
+      // Save answers locally
+      localStorage.setItem('climbit_answers', JSON.stringify(finalAnswers));
+
+      // Pre-fetch AI insights and cache them
+      setLoadingMessage('Simulating low-carbon scenarios...');
+      const aiInsights = await getAIInsightsAction(finalAnswers);
+      localStorage.setItem('climbit_ai_insights', JSON.stringify(aiInsights));
+    } catch (err) {
+      console.error('Error calculating AI insights during onboarding:', err);
+    } finally {
+      setLoading(false);
+      router.push('/dashboard');
+    }
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-[#090d16] text-slate-100 selection:bg-emerald-500/30">
+      {/* Header */}
+      <header className="sticky top-0 z-50 glass border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1 outline-none">
+          <span className="text-xl font-bold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+            Climbit
+          </span>
+        </Link>
+        <span className="text-xs font-semibold text-slate-400">
+          Question {currentStep + 1} of {QUESTIONS.length}
+        </span>
+      </header>
+
+      {/* Main Flow */}
+      <main className="flex-1 flex flex-col justify-center items-center px-4 py-8 max-w-4xl mx-auto w-full">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center space-y-6 text-center animate-fade-in">
+            <div className="relative flex items-center justify-center">
+              <div className="h-16 w-16 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
+              <Sparkles className="absolute h-6 w-6 text-emerald-400 animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Climbit Engine Running</h2>
+              <p className="text-slate-400 text-sm max-w-xs">{loadingMessage}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full space-y-8">
+            {/* Progress bar */}
+            <div className="space-y-2">
+              <Progress value={progressPercent} className="h-1.5" barClassName="bg-emerald-500" />
+              <div className="flex justify-between text-[10px] text-slate-500 font-semibold tracking-wider uppercase">
+                <span>Start</span>
+                <span>{progressPercent}% Complete</span>
+                <span>Results</span>
+              </div>
+            </div>
+
+            {/* Question Card */}
+            <div className="space-y-6">
+              <div className="text-center md:text-left">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-snug mb-2">
+                  {question.question}
+                </h1>
+                <p className="text-sm text-slate-400 max-w-xl">
+                  {question.description}
+                </p>
+              </div>
+
+              {/* Grid of Options */}
+              <div className="grid md:grid-cols-3 gap-4" role="radiogroup" aria-label={question.question}>
+                {question.options.map((opt, idx) => {
+                  const Icon = opt.icon;
+                  const isSelected = answers[question.key] === opt.value;
+
+                  return (
+                    <button
+                      key={opt.value}
+                      ref={(el) => {
+                        optionsRefs.current[idx] = el;
+                      }}
+                      role="radio"
+                      aria-checked={isSelected}
+                      id={`opt-${question.key}-${opt.value}`}
+                      onClick={() => handleSelect(opt.value)}
+                      onKeyDown={(e) => handleKeyDown(e, idx, opt.value)}
+                      className={`flex flex-col text-left p-5 rounded-2xl border transition-all relative outline-none duration-150 select-none ${
+                        isSelected
+                          ? 'bg-emerald-950/20 border-emerald-500 shadow-md shadow-emerald-500/5'
+                          : 'bg-[#0f1626]/80 border-slate-800/80 hover:border-slate-700 hover:bg-[#121c32]/80'
+                      } focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-transparent`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`h-9 w-9 rounded-xl flex items-center justify-center border transition-colors ${
+                          isSelected
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            : 'bg-slate-900 text-slate-400 border-slate-800'
+                        }`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <span className={`font-bold text-sm leading-none transition-colors ${
+                          isSelected ? 'text-emerald-400' : 'text-slate-200'
+                        }`}>
+                          {opt.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        {opt.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Stepper Buttons */}
+            <div className="flex justify-between items-center pt-4 border-t border-slate-900">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                className="flex items-center gap-2 text-slate-400"
+                id="onboarding-prev-btn"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+              <div className="text-xs text-slate-500 font-medium">
+                Tip: Use <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">Tab</kbd> and <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">Arrow Keys</kbd> to navigate
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
