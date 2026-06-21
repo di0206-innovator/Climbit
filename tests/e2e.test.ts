@@ -4,6 +4,10 @@ import AxeBuilder from '@axe-core/playwright';
 test.describe('Climbit E2E User Flow', () => {
   
   test('should go from landing page to onboarding, complete it, and verify dashboard calculations', async ({ page }) => {
+    // Listen for browser logs and errors
+    page.on('console', msg => console.log(`BROWSER LOG [${msg.type()}]:`, msg.text()));
+    page.on('pageerror', err => console.error('BROWSER ERROR:', err.message));
+
     // 1. Visit Landing Page
     await page.goto('/');
     

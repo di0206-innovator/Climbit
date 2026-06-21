@@ -14,7 +14,6 @@ import Progress from '../../components/ui/progress';
 import { OnboardingAnswers } from '../../types';
 import { onboardingSchema } from '../../lib/validation/schemas';
 
-
 interface QuestionOption {
   value: string;
   label: string;
@@ -195,15 +194,15 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#090d16] text-slate-100 selection:bg-emerald-500/30">
+    <div className="flex flex-col min-h-screen neo-grid text-slate-950 selection:bg-emerald-500/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 glass border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1 outline-none">
-          <span className="text-xl font-bold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+      <header className="sticky top-0 z-50 bg-white border-b-3 border-black px-6 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 group focus-visible:ring-3 focus-visible:ring-black rounded-lg p-1 outline-none">
+          <span className="text-xl font-black tracking-tight text-slate-950">
             Climbit
           </span>
         </Link>
-        <span className="text-xs font-semibold text-slate-400">
+        <span className="text-xs font-black text-slate-700 bg-white border-2 border-black px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_#000000]">
           Question {currentStep + 1} of {QUESTIONS.length}
         </span>
       </header>
@@ -213,20 +212,20 @@ export default function Onboarding() {
         {loading ? (
           <div className="flex flex-col items-center justify-center space-y-6 text-center animate-fade-in">
             <div className="relative flex items-center justify-center">
-              <div className="h-16 w-16 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
-              <Sparkles className="absolute h-6 w-6 text-emerald-400 animate-pulse" />
+              <div className="h-16 w-16 rounded-full border-4 border-black border-t-[#00CC66] animate-spin" />
+              <Sparkles className="absolute h-6 w-6 text-[#FFD53D] animate-pulse" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Climbit Engine Running</h2>
-              <p className="text-slate-400 text-sm max-w-xs">{loadingMessage}</p>
+              <h2 className="text-2xl font-black text-slate-950 mb-2">Climbit Engine Running</h2>
+              <p className="text-slate-700 text-sm font-semibold max-w-xs">{loadingMessage}</p>
             </div>
           </div>
         ) : (
           <div className="w-full space-y-8">
             {/* Progress bar */}
-            <div className="space-y-2">
-              <Progress value={progressPercent} className="h-1.5" barClassName="bg-emerald-500" />
-              <div className="flex justify-between text-[10px] text-slate-500 font-semibold tracking-wider uppercase">
+            <div className="space-y-3">
+              <Progress value={progressPercent} className="h-4" barClassName="bg-[#00CC66]" />
+              <div className="flex justify-between text-[10px] text-slate-800 font-extrabold tracking-wider uppercase">
                 <span>Start</span>
                 <span>{progressPercent}% Complete</span>
                 <span>Results</span>
@@ -236,16 +235,16 @@ export default function Onboarding() {
             {/* Question Card */}
             <div className="space-y-6">
               <div className="text-center md:text-left">
-                <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-snug mb-2">
+                <h1 className="text-2xl md:text-3xl font-black text-slate-950 tracking-tight leading-snug mb-2">
                   {question.question}
                 </h1>
-                <p className="text-sm text-slate-400 max-w-xl">
+                <p className="text-sm font-semibold text-slate-700 max-w-xl">
                   {question.description}
                 </p>
               </div>
 
               {/* Grid of Options */}
-              <div className="grid md:grid-cols-3 gap-4" role="radiogroup" aria-label={question.question}>
+              <div className="grid md:grid-cols-3 gap-5" role="radiogroup" aria-label={question.question}>
                 {question.options.map((opt, idx) => {
                   const Icon = opt.icon;
                   const isSelected = answers[question.key] === opt.value;
@@ -261,27 +260,25 @@ export default function Onboarding() {
                       id={`opt-${question.key}-${opt.value}`}
                       onClick={() => handleSelect(opt.value)}
                       onKeyDown={(e) => handleKeyDown(e, idx, opt.value)}
-                      className={`flex flex-col text-left p-5 rounded-2xl border transition-all relative outline-none duration-150 select-none ${
+                      className={`flex flex-col text-left p-5 border-3 border-black select-none outline-none transition-all duration-100 ${
                         isSelected
-                          ? 'bg-emerald-950/20 border-emerald-500 shadow-md shadow-emerald-500/5'
-                          : 'bg-[#0f1626]/80 border-slate-800/80 hover:border-slate-700 hover:bg-[#121c32]/80'
-                      } focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-transparent`}
+                          ? 'bg-[#FFD53D] translate-x-[2px] translate-y-[2px] shadow-none'
+                          : 'bg-white hover:bg-slate-50 hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_#000000] shadow-[3px_3px_0px_0px_#000000]'
+                      } rounded-2xl focus-visible:ring-3 focus-visible:ring-black`}
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <div className={`h-9 w-9 rounded-xl flex items-center justify-center border transition-colors ${
+                        <div className={`h-9 w-9 rounded-xl flex items-center justify-center border-2 border-black transition-colors ${
                           isSelected
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                            : 'bg-slate-900 text-slate-400 border-slate-800'
+                            ? 'bg-white text-slate-950'
+                            : 'bg-slate-50 text-slate-800'
                         }`}>
                           <Icon className="h-5 w-5" />
                         </div>
-                        <span className={`font-bold text-sm leading-none transition-colors ${
-                          isSelected ? 'text-emerald-400' : 'text-slate-200'
-                        }`}>
+                        <span className="font-extrabold text-sm text-slate-950">
                           {opt.label}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 leading-relaxed">
+                      <p className="text-xs text-slate-700 font-bold leading-relaxed">
                         {opt.description}
                       </p>
                     </button>
@@ -291,20 +288,20 @@ export default function Onboarding() {
             </div>
 
             {/* Stepper Buttons */}
-            <div className="flex justify-between items-center pt-4 border-t border-slate-900">
+            <div className="flex justify-between items-center pt-6 border-t-3 border-black mt-4">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="md"
                 onClick={handleBack}
                 disabled={currentStep === 0}
-                className="flex items-center gap-2 text-slate-400"
+                className="flex items-center gap-2"
                 id="onboarding-prev-btn"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
-              <div className="text-xs text-slate-500 font-medium">
-                Tip: Use <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">Tab</kbd> and <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">Arrow Keys</kbd> to navigate
+              <div className="text-xs text-slate-800 font-bold bg-white border-2 border-black px-3 py-1 rounded-xl shadow-[2px_2px_0px_0px_#000000]">
+                Tip: Use <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-black font-bold text-[10px]">Tab</kbd> and <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-black font-bold text-[10px]">Arrows</kbd>
               </div>
             </div>
           </div>

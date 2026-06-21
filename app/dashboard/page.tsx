@@ -25,7 +25,7 @@ import { onboardingSchema } from '../../lib/validation/schemas';
 // Load chart dynamically to bypass Next.js SSR hydration warnings on SVG graphs
 const FootprintChart = dynamic(() => import('../../components/FootprintChart'), {
   ssr: false,
-  loading: () => <div className="h-[260px] w-full flex items-center justify-center text-slate-500 text-sm">Loading footprint chart...</div>
+  loading: () => <div className="h-[260px] w-full flex items-center justify-center text-slate-700 text-sm font-bold">Loading footprint chart...</div>
 });
 
 export default function Dashboard() {
@@ -116,10 +116,10 @@ export default function Dashboard() {
 
   if (!answers || !footprint || !simulation || !challenge) {
     return (
-      <div className="min-h-screen bg-[#090d16] flex items-center justify-center text-slate-400">
+      <div className="min-h-screen neo-grid flex items-center justify-center text-slate-900">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 border-4 border-slate-800 border-t-emerald-500 rounded-full animate-spin" />
-          <span>Building dashboard...</span>
+          <div className="h-10 w-10 border-4 border-black border-t-[#00CC66] rounded-full animate-spin" />
+          <span className="font-extrabold text-sm">Building dashboard...</span>
         </div>
       </div>
     );
@@ -162,13 +162,14 @@ export default function Dashboard() {
   }).toString();
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-slate-100 selection:bg-emerald-500/30 pb-20">
-      <header className="sticky top-0 z-50 glass border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1 outline-none">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+    <div className="min-h-screen neo-grid text-slate-950 selection:bg-emerald-500/30 pb-20">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b-3 border-black px-6 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 group focus-visible:ring-3 focus-visible:ring-black rounded-lg p-1 outline-none">
+          <div className="h-8 w-8 rounded-lg bg-[#00CC66] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000000] group-hover:scale-105 transition-transform">
             <Leaf className="h-4.5 w-4.5 text-slate-950 stroke-[2.5]" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-white group-hover:text-emerald-400 transition-colors">
+          <span className="text-lg font-black tracking-tight text-slate-950 group-hover:text-emerald-600 transition-colors">
             Climbit
           </span>
         </Link>
@@ -189,30 +190,29 @@ export default function Dashboard() {
         {/* LEFT COLUMN */}
         <div className="lg:col-span-1 space-y-6">
           
-          <Card className="relative overflow-hidden border-emerald-500/20" id="footprint-profile-card">
-            <div className="absolute top-0 right-0 h-28 w-28 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
+          <Card className="relative overflow-hidden bg-[#E8F8F0] border-3 border-black shadow-[4px_4px_0px_0px_#000000]" id="footprint-profile-card">
             <CardHeader className="pb-2">
-              <CardDescription className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+              <CardDescription className="text-slate-700 font-extrabold uppercase tracking-wider text-[10px]">
                 Estimated Footprint
               </CardDescription>
-              <CardTitle className="text-4xl md:text-5xl font-black text-white flex items-baseline gap-1.5 mt-1">
+              <CardTitle className="text-4xl md:text-5xl font-black text-slate-950 flex items-baseline gap-1.5 mt-1">
                 {footprint.monthlyTotal}
-                <span className="text-xs font-normal text-slate-400 tracking-normal">kg CO₂ / month</span>
+                <span className="text-xs font-bold text-slate-700 tracking-normal">kg CO₂ / month</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-sm text-slate-400">
-                Equivalent to approx <span className="text-white font-bold">{footprint.annualTotal} kg</span> of carbon emissions annually.
+              <div className="text-sm font-semibold text-slate-700">
+                Equivalent to approx <span className="text-slate-950 font-black">{footprint.annualTotal} kg</span> of carbon emissions annually.
               </div>
               
-              <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/15 space-y-2">
+              <div className="p-4 rounded-xl bg-white border-2 border-black shadow-[2px_2px_0px_0px_#000000] space-y-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-emerald-400" />
-                  <span className="text-xs font-extrabold text-emerald-400 uppercase tracking-wide">
+                  <Sparkles className="h-4.5 w-4.5 text-[#FFD53D] fill-[#FFD53D]/25 stroke-[2]" />
+                  <span className="text-xs font-black text-slate-950 uppercase tracking-wide">
                     Persona: {profileSummary ? profileSummary.personaTitle : 'Loading...'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-slate-700 font-semibold leading-relaxed">
                   {profileSummary ? profileSummary.personaSummary : 'Analyzing your footprint...'}
                 </p>
               </div>
@@ -221,10 +221,10 @@ export default function Dashboard() {
 
           <Card id="breakdown-chart-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
+              <CardTitle className="text-lg font-black text-slate-950 flex items-center gap-2">
                 Emission Breakdown
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription>
                 Visualizing which lifestyle habits drive the highest emissions.
               </CardDescription>
             </CardHeader>
@@ -234,17 +234,17 @@ export default function Dashboard() {
           </Card>
 
           {profileSummary && (
-            <Card className="border-indigo-500/10" id="opportunity-card">
+            <Card className="bg-[#FFF0F5] border-3 border-black shadow-[4px_4px_0px_0px_#000000]" id="opportunity-card">
               <CardHeader className="pb-2 flex flex-row items-center gap-2.5 space-y-0">
-                <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/25">
+                <div className="h-8 w-8 rounded-lg bg-[#FF5A60] border-2 border-black flex items-center justify-center text-white shadow-[2px_2px_0px_0px_#000000]">
                   <Info className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <CardTitle className="text-sm font-bold text-white">Top Opportunity</CardTitle>
+                  <CardTitle className="text-sm font-black text-slate-950">Top Opportunity</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-slate-300 leading-relaxed italic">
+                <p className="text-xs text-slate-800 font-bold leading-relaxed italic">
                   &ldquo;{profileSummary.topOpportunity}&rdquo;
                 </p>
               </CardContent>
@@ -255,55 +255,53 @@ export default function Dashboard() {
         {/* MIDDLE & RIGHT COLUMNS */}
         <div className="lg:col-span-2 space-y-6">
 
-          <Card className="border-emerald-500/30 bg-gradient-to-br from-slate-900 to-[#0e172a] shadow-lg shadow-emerald-950/5 relative overflow-hidden" id="hero-recommendation-card">
-            <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-            
+          <Card className="bg-[#FFFDF5] border-3 border-black shadow-[4px_4px_0px_0px_#000000] relative overflow-hidden" id="hero-recommendation-card">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/35 text-[10px] font-extrabold uppercase tracking-wider">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#00CC66] text-slate-950 border-2 border-black text-[9px] font-black uppercase tracking-wider shadow-[1.5px_1.5px_0px_0px_#000000]">
                   Top Recommended Action
                 </span>
                 <span className="text-slate-500 text-xs">•</span>
-                <span className="text-slate-400 text-xs font-semibold">ROI Score: {topAction.roiScore}/100</span>
+                <span className="text-slate-855 text-xs font-extrabold">ROI Score: {topAction.roiScore}/100</span>
               </div>
-              <CardTitle className="text-2xl font-black text-white leading-tight">
+              <CardTitle className="text-2xl font-black text-slate-950 leading-tight">
                 {topAction.title}
               </CardTitle>
-              <CardDescription className="text-slate-400 text-sm mt-1">
+              <CardDescription>
                 {topAction.description}
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4 pt-2">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-3 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
                 <div className="text-center md:text-left">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase">Est. Saving</span>
-                  <span className="text-sm font-extrabold text-emerald-400">-{topAction.baseCarbonSavings} kg CO₂/mo</span>
+                  <span className="text-[9px] text-slate-500 font-black block uppercase">Est. Saving</span>
+                  <span className="text-sm font-black text-[#00CC66]">-{topAction.baseCarbonSavings} kg CO₂/mo</span>
                 </div>
                 <div className="text-center md:text-left">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase">Money saved</span>
-                  <span className="text-sm font-extrabold text-emerald-400">${topAction.baseMoneySavings}/mo</span>
+                  <span className="text-[9px] text-slate-500 font-black block uppercase">Money saved</span>
+                  <span className="text-sm font-black text-[#00CC66]">${topAction.baseMoneySavings}/mo</span>
                 </div>
                 <div className="text-center md:text-left">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase">Effort</span>
-                  <span className="text-sm font-extrabold text-slate-200 capitalize">{topAction.effort}</span>
+                  <span className="text-[9px] text-slate-500 font-black block uppercase">Effort</span>
+                  <span className="text-sm font-black text-slate-900 capitalize">{topAction.effort}</span>
                 </div>
                 <div className="text-center md:text-left">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase">Confidence</span>
-                  <span className="text-sm font-extrabold text-slate-200">{Math.round(topAction.confidence * 100)}%</span>
+                  <span className="text-[9px] text-slate-500 font-black block uppercase">Confidence</span>
+                  <span className="text-sm font-black text-slate-900">{Math.round(topAction.confidence * 100)}%</span>
                 </div>
               </div>
 
               {recExplanation ? (
-                <div className="flex gap-2.5 items-start bg-emerald-950/15 border border-emerald-500/10 p-3.5 rounded-xl text-xs text-slate-300 leading-relaxed">
-                  <HelpCircle className="h-4.5 w-4.5 text-emerald-400 shrink-0 mt-0.5" />
+                <div className="flex gap-2.5 items-start bg-white border-2 border-black p-3.5 rounded-xl text-xs text-slate-800 font-semibold leading-relaxed shadow-[2px_2px_0px_0px_#000000]">
+                  <HelpCircle className="h-4.5 w-4.5 text-[#00CC66] shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold text-white block mb-0.5">{recExplanation.headline}</span>
+                    <span className="font-extrabold text-slate-950 block mb-0.5">{recExplanation.headline}</span>
                     {recExplanation.explanation} {recExplanation.whyItFits}
                   </div>
                 </div>
               ) : (
-                <div className="text-xs text-slate-500 animate-pulse">Generating explanation...</div>
+                <div className="text-xs text-slate-500 animate-pulse font-bold">Generating explanation...</div>
               )}
 
               {/* Objection Handler Section */}
@@ -313,21 +311,21 @@ export default function Dashboard() {
                   size="sm" 
                   onClick={handleObjection}
                   disabled={isHandlingObjection}
-                  className="mt-2 text-xs border-slate-800 hover:bg-slate-800"
+                  className="mt-2 text-xs border-2 border-black"
                 >
                   <XCircle className="w-3.5 h-3.5 mr-1" />
                   {isHandlingObjection ? 'Checking alternatives...' : "I can't do this"}
                 </Button>
               ) : (
-                <div className="mt-4 p-4 bg-orange-950/20 border border-orange-500/20 rounded-xl space-y-2">
-                  <h4 className="text-orange-400 font-bold text-sm flex items-center gap-2">
-                    <RotateCcw className="w-4 h-4" />
+                <div className="mt-4 p-4 bg-[#FFEEDD] border-2 border-black rounded-xl space-y-2 shadow-[2px_2px_0px_0px_#000000]">
+                  <h4 className="text-slate-950 font-black text-sm flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-[#FF5A60]" />
                     Alternative Action: {objection.fallbackAction}
                   </h4>
-                  <p className="text-slate-300 text-xs">
+                  <p className="text-slate-800 text-xs font-semibold">
                     <strong>Why?</strong> {objection.reason}
                   </p>
-                  <p className="text-slate-400 text-xs italic">
+                  <p className="text-slate-600 text-xs italic font-bold">
                     <strong>Next Step:</strong> {objection.nextBestStep}
                   </p>
                 </div>
@@ -335,8 +333,8 @@ export default function Dashboard() {
 
             </CardContent>
 
-            <CardFooter className="bg-slate-950/20 border-t border-slate-850 flex items-center justify-between py-4">
-              <span className="text-xs text-slate-400">
+            <CardFooter className="bg-white border-t-3 border-black flex items-center justify-between py-4">
+              <span className="text-xs text-slate-650 font-bold">
                 Toggle to simulate carbon reduction below.
               </span>
               <label 
@@ -348,20 +346,20 @@ export default function Dashboard() {
                   id={`check-${topAction.id}`}
                   checked={selectedActions.includes(topAction.id)}
                   onChange={() => toggleAction(topAction.id)}
-                  className="h-4.5 w-4.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-900 outline-none cursor-pointer"
+                  className="h-5 w-5 rounded border-2 border-black text-[#00CC66] focus:ring-black bg-white outline-none cursor-pointer"
                 />
-                <span className="text-xs font-bold text-slate-200">Include in simulation</span>
+                <span className="text-xs font-black text-slate-900">Include in simulation</span>
               </label>
             </CardFooter>
           </Card>
 
-          <Card className="border-teal-500/10" id="habit-simulator-card">
+          <Card id="habit-simulator-card">
             <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
+                <CardTitle className="text-lg font-black text-slate-950 flex items-center gap-2">
                   Habit Simulator
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription>
                   Select and apply actions to see how your footprint improves.
                 </CardDescription>
               </div>
@@ -369,7 +367,7 @@ export default function Dashboard() {
                 variant="ghost"
                 size="sm"
                 onClick={resetSimulator}
-                className="h-8 px-2 text-slate-400 hover:text-white"
+                className="h-8 px-2 text-slate-600 hover:text-slate-900 border-none shadow-none active:translate-x-0 active:translate-y-0"
               >
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
                 Reset
@@ -377,39 +375,39 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl text-center">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase mb-1">New Footprint</span>
-                  <span className="text-2xl font-black text-white">{simulation.newFootprint}</span>
-                  <span className="text-[9px] text-slate-400 block mt-0.5">kg CO₂/mo</span>
+                <div className="bg-white border-2 border-black p-4 rounded-2xl text-center shadow-[3px_3px_0px_0px_#000000]">
+                  <span className="text-[9px] text-slate-500 font-black block uppercase mb-1">New Footprint</span>
+                  <span className="text-2xl font-black text-slate-950">{simulation.newFootprint}</span>
+                  <span className="text-[9px] text-slate-650 block font-bold mt-0.5">kg CO₂/mo</span>
                 </div>
-                <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl text-center">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase mb-1">Savings</span>
-                  <span className="text-2xl font-black text-emerald-400">-{simulation.monthlyReduction}</span>
-                  <span className="text-[9px] text-slate-400 block mt-0.5">kg CO₂/mo</span>
+                <div className="bg-white border-2 border-black p-4 rounded-2xl text-center shadow-[3px_3px_0px_0px_#000000]">
+                  <span className="text-[9px] text-slate-500 font-black block uppercase mb-1">Savings</span>
+                  <span className="text-2xl font-black text-[#00CC66]">-{simulation.monthlyReduction}</span>
+                  <span className="text-[9px] text-slate-650 block font-bold mt-0.5">kg CO₂/mo</span>
                 </div>
-                <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl text-center">
-                  <span className="text-[10px] text-slate-500 font-bold block uppercase mb-1">Money Saved</span>
-                  <span className="text-2xl font-black text-emerald-400">${simulation.moneySaved}</span>
-                  <span className="text-[9px] text-slate-400 block mt-0.5">/ month</span>
+                <div className="bg-white border-2 border-black p-4 rounded-2xl text-center shadow-[3px_3px_0px_0px_#000000]">
+                  <span className="text-[9px] text-slate-500 font-black block uppercase mb-1">Money Saved</span>
+                  <span className="text-2xl font-black text-[#00CC66]">${simulation.moneySaved}</span>
+                  <span className="text-[9px] text-slate-650 block font-bold mt-0.5">/ month</span>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold text-slate-400">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-black text-slate-800">
                     <span>Original Footprint</span>
-                    <span className="text-slate-200">{simulation.originalFootprint} kg CO₂</span>
+                    <span>{simulation.originalFootprint} kg CO₂</span>
                   </div>
-                  <Progress value={100} barClassName="bg-slate-700" />
+                  <Progress value={100} barClassName="bg-slate-400" />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs font-semibold text-slate-400">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs font-black text-slate-800">
                     <span>Improved Footprint</span>
-                    <span className="text-emerald-400">{simulation.newFootprint} kg CO₂ (-{simulation.monthlyReduction} kg)</span>
+                    <span className="text-[#00CC66]">{simulation.newFootprint} kg CO₂ (-{simulation.monthlyReduction} kg)</span>
                   </div>
                   <Progress 
                     value={Math.max(15, Math.round((simulation.newFootprint / footprint.monthlyTotal) * 100))} 
-                    barClassName="bg-gradient-to-r from-emerald-500 to-teal-400" 
+                    barClassName="bg-[#00CC66]" 
                   />
                 </div>
               </div>
@@ -417,22 +415,22 @@ export default function Dashboard() {
           </Card>
 
           {/* 30-Day Sprint Challenge Board */}
-          <Card className="border-indigo-500/10 overflow-hidden" id="challenge-board-card">
-            <div className="p-6 bg-gradient-to-r from-[#0d1222] to-[#0f172a] border-b border-slate-850 flex items-center justify-between">
+          <Card className="overflow-hidden" id="challenge-board-card">
+            <div className="p-6 bg-[#EBF4FF] border-b-3 border-black flex items-center justify-between">
               <div className="space-y-1">
-                <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-indigo-400" />
+                <CardTitle className="text-lg font-black text-slate-950 flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-[#B288FF]" />
                   Your 30-Day Sprint
                 </CardTitle>
-                <CardDescription className="text-slate-400 text-xs">
+                <CardDescription>
                   {challenge.description}
                 </CardDescription>
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-2xl font-black text-indigo-400">
+              <div className="text-right shrink-0 bg-white border-2 border-black px-3 py-1.5 rounded-xl shadow-[2px_2px_0px_0px_#000000]">
+                <span className="text-2xl font-black text-slate-950">
                   {completedMilestones.length}/4
                 </span>
-                <span className="text-[10px] text-slate-500 block font-bold uppercase uppercase tracking-wider">Weeks Done</span>
+                <span className="text-[8px] text-slate-500 block font-black uppercase tracking-wider">Weeks Done</span>
               </div>
             </div>
 
@@ -445,24 +443,24 @@ export default function Dashboard() {
                       key={ms.week}
                       id={`milestone-week-${ms.week}`}
                       onClick={() => toggleMilestone(ms.week)}
-                      className={`text-left p-4 rounded-xl border transition-all flex gap-3 outline-none ${
+                      className={`text-left p-4 rounded-xl border-2 border-black transition-all flex gap-3 outline-none ${
                         isDone
-                          ? 'bg-indigo-950/15 border-indigo-500/30'
-                          : 'bg-[#0f1627]/40 border-slate-800/80 hover:border-slate-700/80'
-                      } focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                          ? 'bg-[#EBF4FF] translate-x-[2px] translate-y-[2px] shadow-none'
+                          : 'bg-white hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_#000000] shadow-[2px_2px_0px_0px_#000000]'
+                      } focus-visible:ring-3 focus-visible:ring-black`}
                     >
                       <div className="mt-0.5">
-                        <CheckCircle2 className={`h-4.5 w-4.5 shrink-0 ${
-                          isDone ? 'text-indigo-400 fill-indigo-400/10' : 'text-slate-600'
+                        <CheckCircle2 className={`h-5 w-5 shrink-0 ${
+                          isDone ? 'text-blue-600 fill-blue-600/10' : 'text-slate-400'
                         }`} />
                       </div>
                       <div className="space-y-1">
-                        <span className={`text-xs font-bold block ${
-                          isDone ? 'text-indigo-400 line-through decoration-indigo-500/50' : 'text-slate-200'
+                        <span className={`text-xs font-black block ${
+                          isDone ? 'text-blue-750 line-through decoration-blue-600/50' : 'text-slate-950'
                         }`}>
                           {ms.title}
                         </span>
-                        <p className="text-[11px] text-slate-400 leading-normal">
+                        <p className="text-[11px] text-slate-700 font-semibold leading-normal">
                           {ms.description}
                         </p>
                       </div>
@@ -472,15 +470,15 @@ export default function Dashboard() {
               </div>
 
               {weeklyReflection && (
-                <div className="mt-4 p-4 bg-indigo-950/20 border border-indigo-500/20 rounded-xl space-y-2">
-                  <h4 className="text-indigo-400 font-bold text-sm">Weekly Reflection</h4>
-                  <p className="text-slate-300 text-xs">
+                <div className="mt-4 p-4 bg-[#EBF4FF] border-2 border-black rounded-xl space-y-2 shadow-[2px_2px_0px_0px_#000000]">
+                  <h4 className="text-slate-950 font-black text-sm">Weekly Reflection</h4>
+                  <p className="text-slate-800 text-xs font-semibold">
                     {weeklyReflection.summary}
                   </p>
-                  <p className="text-slate-300 text-xs">
+                  <p className="text-slate-800 text-xs font-semibold">
                     <strong>Focus Next Week:</strong> {weeklyReflection.focusNextWeek}
                   </p>
-                  <p className="text-slate-400 text-xs italic">
+                  <p className="text-slate-650 text-xs italic font-bold">
                     &quot;{weeklyReflection.motivationLine}&quot;
                   </p>
                 </div>
@@ -488,17 +486,17 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-800/60" id="explainability-panel-card">
+          <Card className="border-3 border-black" id="explainability-panel-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="h-4.5 w-4.5 text-emerald-500" />
+              <CardTitle className="text-sm font-black text-slate-950 flex items-center gap-2">
+                <ShieldCheck className="h-4.5 w-4.5 text-[#00CC66]" />
                 Algorithmic Explainability
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-slate-400 space-y-3 leading-relaxed">
+            <CardContent className="text-xs text-slate-750 font-semibold space-y-3 leading-relaxed">
               <p>
                 Climbit does not use AI for core math, scores, or rankings. All outputs are computed using transparent, deterministic formulas. Learn more details in the{' '}
-                <Link href="/insights" className="text-emerald-450 underline hover:text-emerald-300 font-semibold outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded-sm">
+                <Link href="/insights" className="text-emerald-600 underline hover:text-[#00CC66] font-black outline-none focus-visible:ring-1 focus-visible:ring-black rounded-sm">
                   Explainability Panel
                 </Link>
                 .

@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 224 25% 6%;
-    --foreground: 210 20% 98%;
-    --card: 224 25% 9%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 25% 8%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 150 84% 44%; /* Emerald/Neon-ish green */
-    --primary-foreground: 224 25% 6%;
-    --secondary: 215 15% 15%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 15% 15%;
-    --muted-foreground: 215 15% 65%;
-    --accent: 150 84% 44%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 15% 16%;
-    --input: 215 15% 16%;
-    --ring: 150 84% 44%;
-    --radius: 0.75rem;
+    --background: 38 30% 97%; /* #FAF6EE warm cream background */
+    --foreground: 224 50% 6%; /* #0B0E14 deep charcoal/black text */
+    --card: 0 0% 100%; /* Pure white inside cards */
+    --card-foreground: 224 50% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 50% 6%;
+    --primary: 152 100% 40%; /* Vibrant Emerald Green #00CC66 */
+    --primary-foreground: 224 50% 6%;
+    --secondary: 46 100% 62%; /* Golden yellow #FFD53D */
+    --secondary-foreground: 224 50% 6%;
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 262 100% 70%; /* Pastel Purple #B288FF */
+    --accent-foreground: 224 50% 6%;
+    --destructive: 358 100% 65%; /* Coral pink/red #FF5A60 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0%; /* Solid black borders */
+    --input: 0 0% 0%;
+    --ring: 152 100% 40%;
+    --radius: 1rem;
   }
 }
 
@@ -33,72 +33,86 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border)) hsl(var(--background));
+  scrollbar-color: #000000 hsl(var(--background));
 }
 
 /* Custom Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
   background: hsl(var(--background));
+  border-left: 2px solid #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 3px;
+  background: #000000;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
 }
 
-/* Custom visual utility classes */
-.glass {
-  background: rgba(13, 20, 35, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* Dotted grid background */
+.neo-grid {
+  background-color: hsl(var(--background));
+  background-image: radial-gradient(rgba(0, 0, 0, 0.12) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
 }
 
-.glass-card {
-  background: linear-gradient(135deg, rgba(16, 24, 48, 0.6) 0%, rgba(10, 16, 32, 0.8) 100%);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+/* Neo-brutalist card styling */
+.neo-card {
+  background: #ffffff;
+  border: 3px solid #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
+  border-radius: 1rem;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
 }
 
-.glass-card:hover {
-  border-color: rgba(16, 185, 129, 0.25);
+.neo-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px 0px #000000;
 }
 
-.glow-btn {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.2s ease-in-out;
+/* Static Neo-brutalist card */
+.neo-card-static {
+  background: #ffffff;
+  border: 3px solid #000000;
+  box-shadow: 4px 4px 0px 0px #000000;
+  border-radius: 1rem;
 }
 
-.glow-btn::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.5s ease;
+/* Custom visual header styling */
+.neo-header {
+  background: #ffffff;
+  border-bottom: 3px solid #000000;
 }
 
-.glow-btn:hover::after {
-  transform: translateX(100%);
+/* Custom visual stepper options selection */
+.neo-option-btn {
+  background: #ffffff;
+  border: 3px solid #000000;
+  box-shadow: 3px 3px 0px 0px #000000;
+  border-radius: 1rem;
+  transition: all 0.1s ease-in-out;
 }
 
+.neo-option-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+.neo-option-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px #000000;
+}
+
+/* Custom focus states */
 .custom-focus-ring:focus-visible {
-  outline: 2px solid hsl(var(--ring));
+  outline: 3px solid #000000;
   outline-offset: 2px;
 }
 
@@ -109,5 +123,5 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

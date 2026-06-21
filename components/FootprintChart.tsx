@@ -26,10 +26,10 @@ export default function FootprintChart({ categories }: FootprintChartProps) {
   }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="glass px-3.5 py-2.5 rounded-xl border border-slate-700/80 text-xs shadow-xl">
-          <p className="font-bold text-white mb-1">{payload[0].payload.name}</p>
-          <p className="text-emerald-400 font-semibold">
-            {payload[0].value} kg CO2 / month
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border-3 border-black shadow-[3px_3px_0px_0px_#000000] text-xs">
+          <p className="font-extrabold text-slate-950 mb-1">{payload[0].payload.name}</p>
+          <p className="text-[#00CC66] font-extrabold">
+            {payload[0].value} kg CO₂ / month
           </p>
         </div>
       );
@@ -47,7 +47,7 @@ export default function FootprintChart({ categories }: FootprintChartProps) {
         >
           <XAxis
             type="number"
-            stroke="#64748b"
+            stroke="#000000"
             fontSize={11}
             tickLine={false}
             axisLine={false}
@@ -55,35 +55,28 @@ export default function FootprintChart({ categories }: FootprintChartProps) {
           <YAxis
             type="category"
             dataKey="name"
-            stroke="#94a3b8"
+            stroke="#000000"
             fontSize={11}
             tickLine={false}
             axisLine={false}
             width={110}
+            style={{ fontWeight: 'bold' }}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(16, 185, 129, 0.05)', radius: 8 }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.04)', radius: 8 }} />
           <Bar
             dataKey="value"
-            radius={[0, 8, 8, 0]}
-            maxBarSize={20}
+            radius={[0, 6, 6, 0]}
+            maxBarSize={22}
+            stroke="#000000"
+            strokeWidth={2}
           >
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={index === 0 ? 'url(#activeGrad)' : 'url(#defaultGrad)'}
+                fill={index === 0 ? '#00CC66' : '#FFD53D'}
               />
             ))}
           </Bar>
-          <defs>
-            <linearGradient id="activeGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
-              <stop offset="100%" stopColor="#34d399" stopOpacity={1} />
-            </linearGradient>
-            <linearGradient id="defaultGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.7} />
-            </linearGradient>
-          </defs>
         </BarChart>
       </ResponsiveContainer>
     </div>
