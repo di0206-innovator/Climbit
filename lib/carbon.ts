@@ -42,6 +42,14 @@ export const TRAVEL_EMISSIONS = {
   frequently: 260,
 };
 
+/**
+ * Calculates the total monthly and annual carbon footprint based on the user's questionnaire answers.
+ * Breaks down emissions by category (commute, diet, electricity, ac, delivery, travel) and evaluates
+ * the corresponding carbon grades and persona classifications.
+ * 
+ * @param answers The validated onboarding answers containing lifestyle choices.
+ * @returns FootprintResult containing total emissions, categories breakdown, equivalences, and tips.
+ */
 export function calculateFootprint(answers: OnboardingAnswers): FootprintResult {
   const commuteVal = COMMUTE_EMISSIONS[answers.commuteMode];
   const dietVal = DIET_EMISSIONS[answers.dietPattern];
@@ -264,6 +272,15 @@ export function calculateFootprint(answers: OnboardingAnswers): FootprintResult 
   };
 }
 
+/**
+ * Ranks all available recommendation action items based on a custom Return-on-Investment (ROI) score.
+ * ROI is computed dynamically considering carbon savings, money savings, effort level, cost, and relevance
+ * to the user's highest footprint drivers.
+ * 
+ * @param answers The validated onboarding answers.
+ * @param footprint The calculated footprint details.
+ * @returns A sorted array of RecommendationResult items, ordered by relevance and ROI descending.
+ */
 export function rankActions(
   answers: OnboardingAnswers,
   footprint: FootprintResult
@@ -327,6 +344,14 @@ export function rankActions(
   return ranked.sort((a, b) => b.roiScore - a.roiScore);
 }
 
+/**
+ * Simulates real-time carbon and financial savings based on the user's selected eco-friendly actions.
+ * Ensures that carbon savings for any single action do not exceed the user's calculated category emission.
+ * 
+ * @param footprint The user's baseline footprint details.
+ * @param activeActionIds Array of selected action item IDs to simulate.
+ * @returns SimulatorResult containing the new footprint and cumulative reductions.
+ */
 export function simulateHabits(
   footprint: FootprintResult,
   activeActionIds: string[]
@@ -362,6 +387,14 @@ export function simulateHabits(
   };
 }
 
+/**
+ * Generates a 4-week gamified climate roadmap challenge tailored to the user's persona.
+ * Selected milestones are populated using the user's top-ranked actions.
+ * 
+ * @param answers The validated onboarding answers.
+ * @param topActions The array of ranked recommendations.
+ * @returns ChallengeResult containing challenge details, 4 weekly milestones, and badge criteria.
+ */
 export function generateChallenge(answers: OnboardingAnswers, topActions: RecommendationResult[]): ChallengeResult {
   // Grab top 4 unique actions to make a 4-week challenge
   const selectedActions = topActions.slice(0, 4);

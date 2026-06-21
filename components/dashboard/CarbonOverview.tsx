@@ -90,7 +90,7 @@ export default function CarbonOverview() {
         <CardContent className="space-y-4">
           <div className="p-4 rounded-xl bg-white/60 backdrop-blur-sm border-2 border-black shadow-[2px_2px_0px_0px_#000000] space-y-2">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4.5 w-4.5 text-[#FFD53D] fill-[#FFD53D]/25 stroke-[2]" />
+              <Sparkles className="h-4.5 w-4.5 text-[#FFD53D] fill-[#FFD53D]/25 stroke-[2]" aria-hidden="true" />
               <span className="text-xs font-black text-slate-950 uppercase tracking-wide">
                 Persona: {profileSummary ? profileSummary.personaTitle : (footprint.personaTitle || 'Loading...')}
               </span>
@@ -109,7 +109,7 @@ export default function CarbonOverview() {
             className="w-full mt-2 flex items-center justify-center gap-1.5 border-2 border-black"
             aria-label="Share your carbon footprint results"
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-4 w-4" aria-hidden="true" />
             Share Climate Trading Card
           </Button>
         </CardContent>
@@ -189,7 +189,7 @@ export default function CarbonOverview() {
         <Card className="bg-[#FFF0F5] border-3 border-black shadow-[4px_4px_0px_0px_#000000]">
           <CardHeader className="pb-2 flex flex-row items-center gap-2.5 space-y-0">
             <div className="h-8 w-8 rounded-lg bg-[#FF5A60] border-2 border-black flex items-center justify-center text-white shadow-[2px_2px_0px_0px_#000000]">
-              <Info className="h-4.5 w-4.5" />
+              <Info className="h-4.5 w-4.5" aria-hidden="true" />
             </div>
             <div>
               <CardTitle className="text-sm font-black text-slate-950">Top Opportunity</CardTitle>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { OnboardingAnswers, FootprintResult, RecommendationResult, ChallengeResult, SimulatorResult } from '../types';
+import { OnboardingAnswers, FootprintResult, RecommendationResult, ChallengeResult, SimulatorResult, FootprintHistoryEntry } from '../types';
 import type { ProfileSummary, RecommendationExplanation, ObjectionHandler, WeeklyReflection } from '../lib/gemini';
 import { type VisionExtractionResult } from '../app/actions/vision';
 import { type VoiceExtractionResult } from '../app/actions/voice';
@@ -32,6 +32,11 @@ interface ClimbitState {
   onboardingStep: number;
   setOnboardingStep: (step: number) => void;
 
+  history: FootprintHistoryEntry[];
+  addHistoryEntry: (entry: FootprintHistoryEntry) => void;
+  deleteHistoryEntry: (id: string) => void;
+  setHistory: (history: FootprintHistoryEntry[]) => void;
+
   setCoreData: (answers: OnboardingAnswers, footprint: FootprintResult, ranked: RecommendationResult[], challenge: ChallengeResult) => void;
   setSelectedActions: (actions: string[]) => void;
   setSimulation: (simulation: SimulatorResult) => void;
@@ -57,6 +62,7 @@ export const useClimbitStore = create<ClimbitState>()(
       selectedActions: [],
       simulation: null,
       completedMilestones: [],
+      history: [],
       
       profileSummary: null,
       recExplanation: null,
@@ -75,6 +81,16 @@ export const useClimbitStore = create<ClimbitState>()(
 
       onboardingStep: 0,
       setOnboardingStep: (step) => set({ onboardingStep: step }),
+
+      addHistoryEntry: (entry) => set((state) => {
+        const filtered = state.history.filter((h) => h.date !== entry.date);
+        const updated = [...filtered, entry].sort((a, b) => a.date.localeCompare(b.date));
+        return { history: updated };
+      }),
+      deleteHistoryEntry: (id) => set((state) => ({
+        history: state.history.filter((h) => h.id !== id)
+      })),
+      setHistory: (history) => set({ history: history.sort((a, b) => a.date.localeCompare(b.date)) }),
 
       setCoreData: (answers, footprint, ranked, challenge) => set({ answers, footprint, rankedActions: ranked, challenge }),
       setSelectedActions: (actions) => set({ selectedActions: actions }),
@@ -109,6 +125,7 @@ export const useClimbitStore = create<ClimbitState>()(
         completedMilestones: state.completedMilestones,
         profileSummary: state.profileSummary,
         onboardingStep: state.onboardingStep,
+        history: state.history,
       }),
     }
   )

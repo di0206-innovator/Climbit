@@ -18,7 +18,8 @@ create table user_profiles (
   challenge_json jsonb,
   ranked_actions_json jsonb,
   selected_actions text[] default '{}',
-  completed_milestones int[] default '{}'
+  completed_milestones int[] default '{}',
+  history_json jsonb default '[]'::jsonb
 );
 
 -- 3. Enable RLS
@@ -40,3 +41,6 @@ create policy "Users can update their own profile."
 create policy "Users can delete their own profile."
   on user_profiles for delete
   using ( requesting_user_id() = id );
+
+-- 5. Migration statement for existing deployments
+alter table user_profiles add column if not exists history_json jsonb default '[]'::jsonb;

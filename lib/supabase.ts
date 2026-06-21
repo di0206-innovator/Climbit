@@ -8,6 +8,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * Checks whether Supabase is configured with valid credentials (not placeholders).
+ * 
+ * @returns boolean true if Supabase URL and key are fully configured, false otherwise
  */
 export function isSupabaseConfigured() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -18,6 +20,9 @@ export function isSupabaseConfigured() {
 /**
  * Creates a custom Supabase client authenticated with the current Clerk user's token.
  * This ensures that RLS (Row Level Security) works perfectly with Clerk.
+ * 
+ * @param clerkToken The JWT token obtained from Clerk session
+ * @returns SupabaseClient instance
  */
 export const createClerkSupabaseClient = (clerkToken: string) => {
   return createClient(supabaseUrl, supabaseAnonKey, {
@@ -29,6 +34,14 @@ export const createClerkSupabaseClient = (clerkToken: string) => {
   });
 };
 
+/**
+ * Loads the user profile data from Supabase for the authenticated user.
+ * Falls back gracefully to null if Supabase is unconfigured or user has no row.
+ * 
+ * @param clerkToken The authenticated Clerk session token
+ * @param userId The unique user ID from Clerk
+ * @returns Promise resolving to the user profile record or null
+ */
 export async function loadUserProfile(clerkToken: string, userId: string) {
   if (!isSupabaseConfigured()) {
     console.warn('Supabase is not configured. Falling back to local storage.');
@@ -49,6 +62,15 @@ export async function loadUserProfile(clerkToken: string, userId: string) {
   return data || null;
 }
 
+/**
+ * Saves or updates the user profile data in Supabase for the authenticated user.
+ * Performs a secure upsert matching the user's primary key (Clerk ID).
+ * 
+ * @param clerkToken The authenticated Clerk session token
+ * @param userId The unique user ID from Clerk
+ * @param payload The fields to save/merge in the profile record
+ * @returns Promise resolving when the transaction finishes
+ */
 export async function saveUserProfile(clerkToken: string, userId: string, payload: Record<string, unknown>) {
   if (!isSupabaseConfigured()) {
     return;

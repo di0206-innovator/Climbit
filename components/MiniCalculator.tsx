@@ -53,7 +53,7 @@ export default function MiniCalculator() {
       <div className="md:col-span-7 bg-white border-3 border-black p-6 rounded-3xl shadow-[5px_5px_0px_0px_#000000] flex flex-col justify-between space-y-6">
         <div>
           <h3 className="text-xl font-black text-slate-950 mb-1 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-[#FFD53D] fill-[#FFD53D]/25" />
+            <Sparkles className="h-5 w-5 text-[#FFD53D] fill-[#FFD53D]/25" aria-hidden="true" />
             Emissions Simulator
           </h3>
           <p className="text-xs text-slate-700 font-bold mb-6">
@@ -79,7 +79,7 @@ export default function MiniCalculator() {
                         : 'bg-white hover:bg-slate-50 shadow-[2px_2px_0px_0px_#000000] hover:translate-y-[-1px]'
                     }`}
                   >
-                    <Icon className="h-5 w-5 mb-2" />
+                    <Icon className="h-5 w-5 mb-2" aria-hidden="true" />
                     <div>
                       <span className="text-xs font-extrabold block">{m.label}</span>
                       <span className="text-[9px] text-slate-600 font-semibold leading-none">{m.desc}</span>
@@ -109,7 +109,7 @@ export default function MiniCalculator() {
                         : 'bg-white hover:bg-slate-50 shadow-[2px_2px_0px_0px_#000000] hover:translate-y-[-1px]'
                     }`}
                   >
-                    <Icon className="h-5 w-5 mb-2" />
+                    <Icon className="h-5 w-5 mb-2" aria-hidden="true" />
                     <div>
                       <span className="text-xs font-extrabold block">{e.label}</span>
                       <span className="text-[9px] text-slate-600 font-semibold leading-none">{e.desc}</span>
@@ -122,7 +122,7 @@ export default function MiniCalculator() {
         </div>
 
         <div className="flex items-start gap-2 bg-[#FFFDF5] border-2 border-black p-3 rounded-xl">
-          <AlertCircle className="h-4.5 w-4.5 text-[#B288FF] shrink-0 mt-0.5" />
+          <AlertCircle className="h-4.5 w-4.5 text-[#B288FF] shrink-0 mt-0.5" aria-hidden="true" />
           <span className="text-[10px] text-slate-600 font-bold leading-normal">
             Calculations include standard grid heating and baseline delivery footprints. Retake full onboarding for full 8-point accuracy.
           </span>

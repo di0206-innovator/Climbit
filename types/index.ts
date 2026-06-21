@@ -87,3 +87,11 @@ export interface ChallengeResult {
   milestones: ChallengeMilestone[];
   badge: string;
 }
+
+export interface FootprintHistoryEntry {
+  id: string;
+  date: string; // "YYYY-MM"
+  monthlyTotal: number;
+  answers: OnboardingAnswers;
+}
+

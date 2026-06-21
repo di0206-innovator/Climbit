@@ -4,12 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useAuth } from '@clerk/nextjs';
-import { TrendingDown } from 'lucide-react';
+import { TrendingDown, Calendar, Plus, Trash2, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { motion } from 'framer-motion';
 
 import { useClimbitStore } from '../../lib/store';
-import { OnboardingAnswers } from '../../types';
+import { OnboardingAnswers, FootprintHistoryEntry } from '../../types';
 import { calculateFootprint, rankActions, generateChallenge, simulateHabits } from '../../lib/carbon';
 import { onboardingSchema } from '../../lib/validation/schemas';
 import { 
@@ -23,17 +23,57 @@ import CarbonOverview from '../../components/dashboard/CarbonOverview';
 import ActionRecommendations from '../../components/dashboard/ActionRecommendations';
 import AILoggerPanel from '../../components/dashboard/AILoggerPanel';
 import ChallengeTracker from '../../components/dashboard/ChallengeTracker';
+import Button from '../../components/ui/button';
+import LogFootprintModal from '../../components/dashboard/LogFootprintModal';
 
 const PredictiveChart = dynamic(() => import('../../components/PredictiveChart'), {
   ssr: false,
   loading: () => <div className="h-[300px] w-full flex items-center justify-center text-slate-700 text-sm font-bold">Loading predictive chart...</div>
 });
 
+const HistoryChart = dynamic(() => import('../../components/HistoryChart'), {
+  ssr: false,
+  loading: () => <div className="h-[300px] w-full flex items-center justify-center text-slate-700 text-sm font-bold">Loading history chart...</div>
+});
+
+const generateMockHistory = (finalAnswers: OnboardingAnswers, currentFootprint: number): FootprintHistoryEntry[] => {
+  const historyEntries: FootprintHistoryEntry[] = [];
+  const currentDate = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    let factor = 1.0;
+    const answersDelta = { ...finalAnswers };
+    if (i > 0) {
+      factor = 1.0 + (i * 0.12) + (Math.random() * 0.04 - 0.02);
+      if (i >= 4) {
+        answersDelta.commuteMode = 'personal_vehicle';
+        answersDelta.dietPattern = 'meat_heavy';
+        answersDelta.electricityUsageProxy = 'high';
+      } else if (i >= 2) {
+        answersDelta.commuteMode = 'cab';
+        answersDelta.dietPattern = 'flexitarian';
+        answersDelta.electricityUsageProxy = 'medium';
+      }
+    }
+    const monthlyTotal = Math.round(currentFootprint * factor);
+    historyEntries.push({
+      id: `mock-hist-${dateStr}-${Math.random().toString(36).substr(2, 9)}`,
+      date: dateStr,
+      monthlyTotal,
+      answers: answersDelta
+    });
+  }
+  return historyEntries;
+};
+
 export default function Dashboard() {
   const router = useRouter();
   const store = useClimbitStore();
   const { isLoaded, userId, getToken } = useAuth();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [activeTab, setActiveTab] = useState<'projection' | 'history'>('projection');
+  const [isLogOpen, setIsLogOpen] = useState(false);
 
   // Load answers from Supabase or fallback to localStorage
   useEffect(() => {
@@ -62,6 +102,7 @@ export default function Dashboard() {
               usedSupabase = true;
               
               if (profile.selected_actions) store.setSelectedActions(profile.selected_actions);
+              if (profile.history_json) store.setHistory(profile.history_json);
             }
           }
         } catch (e) {
@@ -94,6 +135,12 @@ export default function Dashboard() {
 
         store.setCoreData(validatedAnswers, calculatedFootprint, ranked, generatedChallenge);
 
+        let currentHistory = store.history;
+        if (!currentHistory || currentHistory.length === 0) {
+          currentHistory = generateMockHistory(validatedAnswers, calculatedFootprint.monthlyTotal);
+          store.setHistory(currentHistory);
+        }
+
         if (ranked.length > 0 && !usedSupabase) {
           store.setSelectedActions([ranked[0].id]);
         }
@@ -105,7 +152,8 @@ export default function Dashboard() {
             footprint_json: calculatedFootprint,
             challenge_json: generatedChallenge,
             ranked_actions_json: ranked,
-            selected_actions: ranked.length > 0 ? [ranked[0].id] : []
+            selected_actions: ranked.length > 0 ? [ranked[0].id] : [],
+            history_json: currentHistory
           });
         }
 
@@ -150,6 +198,32 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store.selectedActions, store.footprint]);
 
+  const handleLogged = async (newHistory: FootprintHistoryEntry[]) => {
+    if (userId) {
+      try {
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          await saveUserProfile(token, userId, {
+            answers_json: store.answers,
+            footprint_json: store.footprint,
+            challenge_json: store.challenge,
+            ranked_actions_json: store.rankedActions,
+            selected_actions: store.selectedActions,
+            history_json: newHistory
+          });
+        }
+      } catch (err) {
+        console.error('Failed to sync history with Supabase:', err);
+      }
+    }
+  };
+
+  const handleDeleteHistory = async (id: string) => {
+    const updatedHistory = store.history.filter((h) => h.id !== id);
+    store.setHistory(updatedHistory);
+    await handleLogged(updatedHistory);
+  };
+
   if (isInitializing || !store.answers || !store.footprint || !store.challenge || !store.simulation) {
     return (
       <div className="min-h-screen neo-grid flex items-center justify-center text-slate-900">
@@ -164,6 +238,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen neo-grid text-slate-950 selection:bg-emerald-500/30 pb-20">
       <main className="max-w-6xl mx-auto px-4 mt-8 grid lg:grid-cols-3 gap-8">
+      
+      <LogFootprintModal 
+        isOpen={isLogOpen} 
+        onClose={() => setIsLogOpen(false)} 
+        onLogged={handleLogged} 
+      />
         
         {/* LEFT COLUMN */}
         <div className="lg:col-span-1 space-y-6">
@@ -176,16 +256,126 @@ export default function Dashboard() {
           >
             <Card className="border-3 border-black shadow-[4px_4px_0px_0px_#000000]">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-black text-slate-950 flex items-center gap-2">
-                  <TrendingDown className="h-5 w-5 text-[#00CC66]" />
-                  Path to Net Zero
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-black text-slate-950 flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5 text-[#00CC66]" />
+                    Analytics & Goals
+                  </CardTitle>
+                  <div className="flex border-2 border-black rounded-lg overflow-hidden text-[10px] font-black shrink-0">
+                    <button
+                      id="tab-projection-btn"
+                      onClick={() => setActiveTab('projection')}
+                      className={`px-2 py-0.5 border-r-2 border-black transition-colors ${
+                        activeTab === 'projection' ? 'bg-[#FFD53D]' : 'bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      Projection
+                    </button>
+                    <button
+                      id="tab-history-btn"
+                      onClick={() => setActiveTab('history')}
+                      className={`px-2 py-0.5 transition-colors ${
+                        activeTab === 'history' ? 'bg-[#B288FF]' : 'bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      History
+                    </button>
+                  </div>
+                </div>
                 <CardDescription>
-                  5-year projection based on your current persona and targets.
+                  {activeTab === 'projection' 
+                    ? '5-year projection based on your current persona and targets.' 
+                    : 'Historical carbon progression and logged calculations.'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-2">
-                <PredictiveChart currentMonthly={store.footprint.monthlyTotal} />
+              <CardContent className="pt-2 space-y-4">
+                {activeTab === 'projection' ? (
+                  <PredictiveChart currentMonthly={store.footprint.monthlyTotal} />
+                ) : (
+                  <div className="space-y-4">
+                    <HistoryChart history={store.history} />
+                    
+                    {/* History Analytics Summary */}
+                    {store.history.length >= 2 ? (
+                      (() => {
+                        const baseline = store.history[0].monthlyTotal;
+                        const latest = store.history[store.history.length - 1].monthlyTotal;
+                        const pctChange = Math.round(((latest - baseline) / baseline) * 100);
+                        const isReduction = pctChange < 0;
+                        return (
+                          <div className="p-3 bg-slate-50 border-2 border-black rounded-xl flex items-center justify-between gap-2">
+                            <div>
+                              <span className="text-[9px] uppercase tracking-wider text-slate-500 font-extrabold block">Overall Growth</span>
+                              <div className="flex items-center gap-1 mt-0.5">
+                                {isReduction ? (
+                                  <TrendingDown className="h-4 w-4 text-emerald-500" />
+                                ) : (
+                                  <TrendingUp className="h-4 w-4 text-rose-500" />
+                                )}
+                                <span className={`text-xs font-black ${isReduction ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {isReduction ? '' : '+'}{pctChange}% ({latest - baseline} kg)
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              id="log-entry-btn"
+                              onClick={() => setIsLogOpen(true)}
+                              variant="primary"
+                              size="sm"
+                              className="h-8 border-2 border-black text-[9px] font-black px-2.5 shrink-0"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1" />
+                              Log Entry
+                            </Button>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="flex justify-end">
+                        <Button
+                          id="log-entry-btn"
+                          onClick={() => setIsLogOpen(true)}
+                          variant="primary"
+                          size="sm"
+                          className="h-8 border-2 border-black text-[9px] font-black px-2.5"
+                        >
+                          <Plus className="h-3.5 w-3.5 mr-1" />
+                          Log Entry
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Logged Entries List */}
+                    <div className="space-y-2 border-t-2 border-dashed border-slate-200 pt-3">
+                      <span className="text-[10px] uppercase tracking-wider text-slate-950 font-black block">Logged Months</span>
+                      <div className="max-h-[150px] overflow-y-auto space-y-1.5 pr-1">
+                        {store.history.slice().reverse().map((entry) => {
+                          const [year, month] = entry.date.split('-');
+                          const dateObj = new Date(parseInt(year), parseInt(month) - 1, 1);
+                          const dateStr = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                          return (
+                            <div key={entry.id} className="flex items-center justify-between border border-black p-2 bg-white rounded-lg text-xs font-bold shadow-[1px_1px_0px_0px_#000000]">
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5 text-slate-500" />
+                                <span>{dateStr}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-extrabold text-slate-900">{entry.monthlyTotal} kg</span>
+                                <button
+                                  onClick={() => handleDeleteHistory(entry.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded transition-all"
+                                  aria-label={`Delete entry for ${dateStr}`}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>

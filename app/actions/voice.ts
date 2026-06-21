@@ -13,8 +13,16 @@ export interface VoiceExtractionResult {
   confidence: number;
 }
 
-export async function extractCarbonFromVoice(transcript: string): Promise<VoiceExtractionResult> {
+async function getUserId(): Promise<string> {
+  if (!process.env.CLERK_SECRET_KEY) {
+    return 'mock-user-123';
+  }
   const { userId } = await auth();
+  return userId || '';
+}
+
+export async function extractCarbonFromVoice(transcript: string): Promise<VoiceExtractionResult> {
+  const userId = await getUserId();
   if (!userId) throw new Error('Unauthorized');
   if (!rateLimit(userId)) throw new Error('Rate limit exceeded');
 

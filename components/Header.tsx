@@ -33,7 +33,7 @@ export default function Header() {
         className="flex items-center gap-2 group focus-visible:ring-3 focus-visible:ring-black rounded-lg p-1 outline-none"
       >
         <div className="h-8 w-8 rounded-xl bg-[#00CC66] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_#000000] group-hover:scale-105 transition-transform">
-          <Leaf className="h-4.5 w-4.5 text-slate-950 stroke-[2.5]" />
+          <Leaf className="h-4.5 w-4.5 text-slate-950 stroke-[2.5]" aria-hidden="true" />
         </div>
         <span className="text-lg font-black tracking-tight text-slate-950 group-hover:text-[#00CC66] transition-colors">
           Climbit
@@ -76,7 +76,7 @@ export default function Header() {
               title="Export Local Data to JSON"
               aria-label="Export Local Data to JSON"
             >
-              <Download className="h-4 w-4 sm:mr-1.5" />
+              <Download className="h-4 w-4 sm:mr-1.5" aria-hidden="true" />
               <span className="hidden sm:inline">Export</span>
             </Button>
             {/* Retake */}
@@ -88,7 +88,7 @@ export default function Header() {
               title="Retake Onboarding Quiz"
               aria-label="Retake Onboarding Quiz"
             >
-              <RotateCcw className="h-4 w-4 sm:mr-1.5" />
+              <RotateCcw className="h-4 w-4 sm:mr-1.5" aria-hidden="true" />
               <span className="hidden sm:inline">Retake</span>
             </Button>
           </div>

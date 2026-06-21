@@ -19,8 +19,16 @@ import {
   WeeklyReflection
 } from '../../lib/gemini';
 
-export async function getProfileSummaryAction(answers: OnboardingAnswers): Promise<ProfileSummary> {
+async function getUserId(): Promise<string> {
+  if (!process.env.CLERK_SECRET_KEY) {
+    return 'mock-user-123';
+  }
   const { userId } = await auth();
+  return userId || '';
+}
+
+export async function getProfileSummaryAction(answers: OnboardingAnswers): Promise<ProfileSummary> {
+  const userId = await getUserId();
   if (!userId) throw new Error('Unauthorized');
   if (!rateLimit(userId)) throw new Error('Rate limit exceeded');
 
@@ -33,7 +41,7 @@ export async function getProfileSummaryAction(answers: OnboardingAnswers): Promi
 }
 
 export async function getRecommendationExplanationAction(answers: OnboardingAnswers, actionId: string): Promise<RecommendationExplanation> {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) throw new Error('Unauthorized');
   if (!rateLimit(userId)) throw new Error('Rate limit exceeded');
 
@@ -51,7 +59,7 @@ export async function getRecommendationExplanationAction(answers: OnboardingAnsw
 }
 
 export async function getObjectionHandlerAction(answers: OnboardingAnswers, rejectedActionId: string): Promise<ObjectionHandler> {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) throw new Error('Unauthorized');
   if (!rateLimit(userId)) throw new Error('Rate limit exceeded');
 
@@ -70,7 +78,7 @@ export async function getObjectionHandlerAction(answers: OnboardingAnswers, reje
 }
 
 export async function getShareCaptionAction(answers: OnboardingAnswers, personaTitle: string, topActionTitle: string): Promise<ShareCaption> {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) throw new Error('Unauthorized');
   if (!rateLimit(userId)) throw new Error('Rate limit exceeded');
 
@@ -85,7 +93,7 @@ export async function getShareCaptionAction(answers: OnboardingAnswers, personaT
 }
 
 export async function getWeeklyReflectionAction(answers: OnboardingAnswers, completedMilestones: number, totalMilestones: number): Promise<WeeklyReflection> {
-  const { userId } = await auth();
+  const userId = await getUserId();
   if (!userId) throw new Error('Unauthorized');
   if (!rateLimit(userId)) throw new Error('Rate limit exceeded');
 

@@ -92,6 +92,32 @@ test.describe('Climbit E2E User Flow', () => {
     await expect(milestoneBox).toBeVisible();
     await milestoneBox.click();
 
+    // 5.5. Verify History Tab & Manual logging
+    const historyTab = page.locator('#tab-history-btn');
+    await expect(historyTab).toBeVisible();
+    await historyTab.click();
+
+    // Verify History Chart wrapper is visible
+    const historyChart = page.locator('#history-chart-wrapper');
+    await expect(historyChart).toBeVisible();
+
+    // Click Log Entry to open modal
+    const logEntryBtn = page.locator('#log-entry-btn');
+    await expect(logEntryBtn).toBeVisible();
+    await logEntryBtn.click();
+
+    // Verify modal is open
+    const modalTitle = page.locator('#modal-title');
+    await expect(modalTitle).toBeVisible();
+    await expect(modalTitle).toContainText('Log Monthly Footprint');
+
+    // Click Calculate & Log
+    const calculateBtn = page.locator('button:has-text("Calculate & Log")');
+    await calculateBtn.click();
+
+    // Modal should close, back to history
+    await expect(modalTitle).not.toBeVisible();
+
     // 6. Navigate to share page and verify share card matches inputs
     const shareBtn = page.locator('#go-share-btn');
     await shareBtn.click();
