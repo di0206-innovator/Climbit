@@ -118,13 +118,13 @@ export default function Header() {
         <div className="flex items-center bg-white border-2 border-black h-8.5 px-3.5 rounded-xl shadow-[1.5px_1.5px_0px_0px_#000000]">
           <Show when="signed-out">
             <SignInButton mode="modal">
-              <button className="text-xs font-black text-slate-950 hover:text-[#00CC66] transition-colors outline-none">
+              <button className="text-xs font-black text-slate-950 hover:text-[#00CC66] transition-colors outline-none cursor-pointer">
                 Log In
               </button>
             </SignInButton>
             <span className="text-slate-350 mx-2 text-xs font-bold">|</span>
             <SignUpButton mode="modal">
-              <button className="text-xs font-black text-[#00CC66] hover:text-[#00E572] transition-colors outline-none">
+              <button className="text-xs font-black text-[#00CC66] hover:text-[#00E572] transition-colors outline-none cursor-pointer">
                 Register
               </button>
             </SignUpButton>

@@ -37,14 +37,22 @@ export default function Dashboard() {
 
   // Load answers from Supabase or fallback to localStorage
   useEffect(() => {
-    if (!isLoaded) return; // Wait for Clerk
+    let active = true;
 
-    const initData = async () => {
+    // Timeout fallback if Clerk takes too long to load (prevents loader freeze)
+    const fallbackTimeout = setTimeout(() => {
+      if (active && !isLoaded) {
+        console.warn("Clerk load timed out. Falling back to local mode.");
+        runInitData(false);
+      }
+    }, 2000);
+
+    const runInitData = async (clerkLoaded: boolean) => {
       let rawAnswers = null;
       let usedSupabase = false;
       let token = null;
 
-      if (userId) {
+      if (clerkLoaded && userId) {
         try {
           token = await getToken({ template: 'supabase' });
           if (token) {
@@ -91,7 +99,7 @@ export default function Dashboard() {
         }
 
         // Automatic Migration: Save to Supabase if loaded from localStorage
-        if (userId && token && !usedSupabase) {
+        if (clerkLoaded && userId && token && !usedSupabase) {
           saveUserProfile(token, userId, {
             answers_json: validatedAnswers,
             footprint_json: calculatedFootprint,
@@ -101,15 +109,17 @@ export default function Dashboard() {
           });
         }
 
-        // Trigger AI requests safely with error catch blocks
-        getProfileSummaryAction(validatedAnswers)
-          .then(store.setProfileSummary)
-          .catch(err => console.error('Profile summary AI load failed:', err));
-          
-        if (ranked.length > 0) {
-          getRecommendationExplanationAction(validatedAnswers, ranked[0].id)
-            .then(store.setRecExplanation)
-            .catch(err => console.error('Recommendation explanation AI load failed:', err));
+        // Trigger AI requests safely if authenticated to avoid Clerk 500 errors
+        if (clerkLoaded && userId) {
+          getProfileSummaryAction(validatedAnswers)
+            .then(store.setProfileSummary)
+            .catch(err => console.error('Profile summary AI load failed:', err));
+            
+          if (ranked.length > 0) {
+            getRecommendationExplanationAction(validatedAnswers, ranked[0].id)
+              .then(store.setRecExplanation)
+              .catch(err => console.error('Recommendation explanation AI load failed:', err));
+          }
         }
         
         setIsInitializing(false);
@@ -119,7 +129,15 @@ export default function Dashboard() {
       }
     };
 
-    initData();
+    if (isLoaded) {
+      clearTimeout(fallbackTimeout);
+      runInitData(true);
+    }
+
+    return () => {
+      active = false;
+      clearTimeout(fallbackTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, isLoaded, userId]);
 
