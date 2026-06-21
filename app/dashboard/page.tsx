@@ -6,14 +6,21 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { 
   Leaf, Info, Sparkles, CheckCircle2, Trophy, Share2, HelpCircle, 
-  RotateCcw, ShieldCheck
+  RotateCcw, ShieldCheck, XCircle
 } from 'lucide-react';
 import Button from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../../components/ui/card';
 import Progress from '../../components/ui/progress';
 import { OnboardingAnswers, FootprintResult, RecommendationResult, ChallengeResult, SimulatorResult } from '../../types';
 import { calculateFootprint, rankActions, simulateHabits, generateChallenge } from '../../lib/carbon';
-import { AIInsights } from '../../lib/gemini';
+import { 
+  getProfileSummaryAction, 
+  getRecommendationExplanationAction, 
+  getObjectionHandlerAction,
+  getWeeklyReflectionAction
+} from '../actions/ai';
+import type { ProfileSummary, RecommendationExplanation, ObjectionHandler, WeeklyReflection } from '../../lib/gemini';
+import { onboardingSchema } from '../../lib/validation/schemas';
 
 // Load chart dynamically to bypass Next.js SSR hydration warnings on SVG graphs
 const FootprintChart = dynamic(() => import('../../components/FootprintChart'), {
@@ -35,40 +42,54 @@ export default function Dashboard() {
   // Challenge Checklist State
   const [completedMilestones, setCompletedMilestones] = useState<number[]>([]);
 
-  // AI insights loaded from cache or server
-  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  // AI States
+  const [profileSummary, setProfileSummary] = useState<ProfileSummary | null>(null);
+  const [recExplanation, setRecExplanation] = useState<RecommendationExplanation | null>(null);
+  const [objection, setObjection] = useState<ObjectionHandler | null>(null);
+  const [weeklyReflection, setWeeklyReflection] = useState<WeeklyReflection | null>(null);
+  const [isHandlingObjection, setIsHandlingObjection] = useState(false);
 
   // Load answers from localStorage on client mount
   useEffect(() => {
     const rawAnswers = localStorage.getItem('climbit_answers');
     if (!rawAnswers) {
-      // Safely redirect if user hasn't completed onboarding
       router.push('/onboarding');
       return;
     }
 
     try {
-      const parsedAnswers = JSON.parse(rawAnswers) as OnboardingAnswers;
-      setAnswers(parsedAnswers);
+      const parsedAnswers = JSON.parse(rawAnswers);
+      const validation = onboardingSchema.safeParse(parsedAnswers);
+      if (!validation.success) {
+        console.error('Onboarding answers failed validation:', validation.error);
+        router.push('/onboarding');
+        return;
+      }
 
-      // Compute footprint & ranked recommendations deterministically
-      const calculatedFootprint = calculateFootprint(parsedAnswers);
-      const ranked = rankActions(parsedAnswers, calculatedFootprint);
-      const generatedChallenge = generateChallenge(parsedAnswers, ranked);
+      const validatedAnswers = validation.data as OnboardingAnswers;
+      setAnswers(validatedAnswers);
+
+      const calculatedFootprint = calculateFootprint(validatedAnswers);
+      const ranked = rankActions(validatedAnswers, calculatedFootprint);
+      const generatedChallenge = generateChallenge(validatedAnswers, ranked);
 
       setFootprint(calculatedFootprint);
       setRankedActions(ranked);
       setChallenge(generatedChallenge);
 
-      // Default the top ROI recommendation to be checked in the simulator
       if (ranked.length > 0) {
         setSelectedActions([ranked[0].id]);
       }
 
-      // Check if we have cached AI insights
-      const rawAi = localStorage.getItem('climbit_ai_insights');
-      if (rawAi) {
-        setAiInsights(JSON.parse(rawAi));
+      // Trigger AI requests safely with error catch blocks
+      getProfileSummaryAction(validatedAnswers)
+        .then(setProfileSummary)
+        .catch(err => console.error('Profile summary AI load failed:', err));
+        
+      if (ranked.length > 0) {
+        getRecommendationExplanationAction(validatedAnswers, ranked[0].id)
+          .then(setRecExplanation)
+          .catch(err => console.error('Recommendation explanation AI load failed:', err));
       }
     } catch (e) {
       console.error('Failed to parse onboarding answers from localStorage', e);
@@ -84,6 +105,15 @@ export default function Dashboard() {
     }
   }, [selectedActions, footprint]);
 
+  // Recalculate Weekly Reflection when milestones change
+  useEffect(() => {
+    if (answers && footprint) {
+      getWeeklyReflectionAction(answers, completedMilestones.length, 4)
+        .then(setWeeklyReflection)
+        .catch(err => console.error('Weekly reflection AI load failed:', err));
+    }
+  }, [completedMilestones, answers, footprint]);
+
   if (!answers || !footprint || !simulation || !challenge) {
     return (
       <div className="min-h-screen bg-[#090d16] flex items-center justify-center text-slate-400">
@@ -95,15 +125,7 @@ export default function Dashboard() {
     );
   }
 
-  // Derive display persona (use AI if available, otherwise local rule-based fallback)
-  const displayPersonaTitle = aiInsights?.personaTitle || footprint.personaTitle;
-  const displayPersonaSummary = aiInsights?.personaSummary || footprint.personaSummary;
-  const displayCoachTip = aiInsights?.coachTip || footprint.coachTip;
-  const displayChallengeTitle = aiInsights?.challengeTitle || challenge.title;
-  const displayChallengeDescription = aiInsights?.challengeDescription || challenge.description;
-
   const topAction = rankedActions[0];
-  const otherRecommendations = rankedActions.slice(1, 5);
 
   const toggleAction = (id: string) => {
     setSelectedActions((prev) =>
@@ -121,9 +143,19 @@ export default function Dashboard() {
     setSelectedActions([topAction.id]);
   };
 
-  // Safe parameters to pass to the share page
+  const handleObjection = async () => {
+    setIsHandlingObjection(true);
+    try {
+      const result = await getObjectionHandlerAction(answers, topAction.id);
+      setObjection(result);
+    } catch (err) {
+      console.error("Objection handle failed", err);
+    }
+    setIsHandlingObjection(false);
+  };
+
   const shareParams = new URLSearchParams({
-    persona: displayPersonaTitle,
+    persona: profileSummary?.personaTitle || footprint.personaTitle,
     topAction: topAction.title,
     savings: (simulation.monthlyReduction || topAction.baseCarbonSavings).toString(),
     badge: challenge.badge
@@ -131,7 +163,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 selection:bg-emerald-500/30 pb-20">
-      {/* Header */}
       <header className="sticky top-0 z-50 glass border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1 outline-none">
           <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
@@ -143,27 +174,21 @@ export default function Dashboard() {
         </Link>
         
         <div className="flex items-center gap-3">
-          <Link href="/onboarding" passHref>
-            <Button variant="outline" size="sm" id="restart-onboarding-btn">
-              Retake Quiz
-            </Button>
-          </Link>
-          <Link href={`/share?${shareParams}`} passHref>
-            <Button variant="primary" size="sm" className="flex items-center gap-1.5" id="go-share-btn">
-              <Share2 className="h-3.5 w-3.5" />
-              Share
-            </Button>
-          </Link>
+          <Button href="/onboarding" variant="outline" size="sm" id="restart-onboarding-btn">
+            Retake Quiz
+          </Button>
+          <Button href={`/share?${shareParams}`} variant="primary" size="sm" className="flex items-center gap-1.5" id="go-share-btn">
+            <Share2 className="h-3.5 w-3.5" />
+            Share
+          </Button>
         </div>
       </header>
 
-      {/* Main Container */}
       <main className="max-w-6xl mx-auto px-4 mt-8 grid lg:grid-cols-3 gap-8">
         
-        {/* LEFT COLUMN: Carbon Footprint Profile & Breakdown (1/3 width on wide screens) */}
+        {/* LEFT COLUMN */}
         <div className="lg:col-span-1 space-y-6">
           
-          {/* Main Footprint Card */}
           <Card className="relative overflow-hidden border-emerald-500/20" id="footprint-profile-card">
             <div className="absolute top-0 right-0 h-28 w-28 rounded-full bg-emerald-500/5 blur-2xl pointer-events-none" />
             <CardHeader className="pb-2">
@@ -180,22 +205,20 @@ export default function Dashboard() {
                 Equivalent to approx <span className="text-white font-bold">{footprint.annualTotal} kg</span> of carbon emissions annually.
               </div>
               
-              {/* Persona Section */}
               <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/15 space-y-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-emerald-400" />
                   <span className="text-xs font-extrabold text-emerald-400 uppercase tracking-wide">
-                    Persona: {displayPersonaTitle}
+                    Persona: {profileSummary ? profileSummary.personaTitle : 'Loading...'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  {displayPersonaSummary}
+                  {profileSummary ? profileSummary.personaSummary : 'Analyzing your footprint...'}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Breakdown Chart Card */}
           <Card id="breakdown-chart-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
@@ -210,28 +233,28 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Coach Tips */}
-          <Card className="border-indigo-500/10" id="coach-tip-card">
-            <CardHeader className="pb-2 flex flex-row items-center gap-2.5 space-y-0">
-              <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/25">
-                <Info className="h-4.5 w-4.5" />
-              </div>
-              <div>
-                <CardTitle className="text-sm font-bold text-white">Climate Coach Insight</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-slate-300 leading-relaxed italic">
-                &ldquo;{displayCoachTip}&rdquo;
-              </p>
-            </CardContent>
-          </Card>
+          {profileSummary && (
+            <Card className="border-indigo-500/10" id="opportunity-card">
+              <CardHeader className="pb-2 flex flex-row items-center gap-2.5 space-y-0">
+                <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/25">
+                  <Info className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-bold text-white">Top Opportunity</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-slate-300 leading-relaxed italic">
+                  &ldquo;{profileSummary.topOpportunity}&rdquo;
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        {/* MIDDLE & RIGHT COLUMNS: Decision Engine, Action List & Simulator (2/3 width on wide screens) */}
+        {/* MIDDLE & RIGHT COLUMNS */}
         <div className="lg:col-span-2 space-y-6">
 
-          {/* Hero Action Recommendation (Decision Engine Flagship) */}
           <Card className="border-emerald-500/30 bg-gradient-to-br from-slate-900 to-[#0e172a] shadow-lg shadow-emerald-950/5 relative overflow-hidden" id="hero-recommendation-card">
             <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
             
@@ -252,7 +275,6 @@ export default function Dashboard() {
             </CardHeader>
 
             <CardContent className="space-y-4 pt-2">
-              {/* ROI parameters grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
                 <div className="text-center md:text-left">
                   <span className="text-[10px] text-slate-500 font-bold block uppercase">Est. Saving</span>
@@ -272,14 +294,45 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Explainer note */}
-              <div className="flex gap-2.5 items-start bg-emerald-950/15 border border-emerald-500/10 p-3.5 rounded-xl text-xs text-slate-300 leading-relaxed">
-                <HelpCircle className="h-4.5 w-4.5 text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-white block mb-0.5">Why it ranks #1:</span>
-                  {topAction.whyItMatters} {topAction.relevanceReason}
+              {recExplanation ? (
+                <div className="flex gap-2.5 items-start bg-emerald-950/15 border border-emerald-500/10 p-3.5 rounded-xl text-xs text-slate-300 leading-relaxed">
+                  <HelpCircle className="h-4.5 w-4.5 text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-white block mb-0.5">{recExplanation.headline}</span>
+                    {recExplanation.explanation} {recExplanation.whyItFits}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-xs text-slate-500 animate-pulse">Generating explanation...</div>
+              )}
+
+              {/* Objection Handler Section */}
+              {!objection ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleObjection}
+                  disabled={isHandlingObjection}
+                  className="mt-2 text-xs border-slate-800 hover:bg-slate-800"
+                >
+                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                  {isHandlingObjection ? 'Checking alternatives...' : "I can't do this"}
+                </Button>
+              ) : (
+                <div className="mt-4 p-4 bg-orange-950/20 border border-orange-500/20 rounded-xl space-y-2">
+                  <h4 className="text-orange-400 font-bold text-sm flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4" />
+                    Alternative Action: {objection.fallbackAction}
+                  </h4>
+                  <p className="text-slate-300 text-xs">
+                    <strong>Why?</strong> {objection.reason}
+                  </p>
+                  <p className="text-slate-400 text-xs italic">
+                    <strong>Next Step:</strong> {objection.nextBestStep}
+                  </p>
+                </div>
+              )}
+
             </CardContent>
 
             <CardFooter className="bg-slate-950/20 border-t border-slate-850 flex items-center justify-between py-4">
@@ -295,14 +348,13 @@ export default function Dashboard() {
                   id={`check-${topAction.id}`}
                   checked={selectedActions.includes(topAction.id)}
                   onChange={() => toggleAction(topAction.id)}
-                  className="h-4.5 w-4.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-900 outline-none cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                  className="h-4.5 w-4.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-900 outline-none cursor-pointer"
                 />
                 <span className="text-xs font-bold text-slate-200">Include in simulation</span>
               </label>
             </CardFooter>
           </Card>
 
-          {/* Habit Simulator (Interactive calculation display) */}
           <Card className="border-teal-500/10" id="habit-simulator-card">
             <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
               <div>
@@ -318,15 +370,12 @@ export default function Dashboard() {
                 size="sm"
                 onClick={resetSimulator}
                 className="h-8 px-2 text-slate-400 hover:text-white"
-                id="reset-simulator-btn"
-                title="Reset to default action"
               >
                 <RotateCcw className="h-3.5 w-3.5 mr-1" />
                 Reset
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Math Dashboard Grid */}
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl text-center">
                   <span className="text-[10px] text-slate-500 font-bold block uppercase mb-1">New Footprint</span>
@@ -336,7 +385,7 @@ export default function Dashboard() {
                 <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl text-center">
                   <span className="text-[10px] text-slate-500 font-bold block uppercase mb-1">Savings</span>
                   <span className="text-2xl font-black text-emerald-400">-{simulation.monthlyReduction}</span>
-                  <span className="text-[9px] text-slate-400 block mt-0.5">kg CO₂/mo ({Math.round((simulation.monthlyReduction / footprint.monthlyTotal) * 100)}%)</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">kg CO₂/mo</span>
                 </div>
                 <div className="bg-[#0f172a] border border-slate-800 p-4 rounded-2xl text-center">
                   <span className="text-[10px] text-slate-500 font-bold block uppercase mb-1">Money Saved</span>
@@ -345,7 +394,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Dynamic Bar visualization */}
               <div className="space-y-3">
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs font-semibold text-slate-400">
@@ -368,71 +416,16 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* More Action Recommendations */}
-          <Card id="other-recommendations-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-bold text-white">
-                More Ranked Actions
-              </CardTitle>
-              <CardDescription className="text-slate-400">
-                Deterministic recommendations sorted by lifestyle relevance, cost, and effort.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-slate-800/60">
-              {otherRecommendations.map((action) => {
-                const isChecked = selectedActions.includes(action.id);
-                return (
-                  <div key={action.id} className="py-4 flex gap-4 items-start select-none">
-                    <label 
-                      className="cursor-pointer mt-1" 
-                      htmlFor={`check-${action.id}`}
-                    >
-                      <input
-                        type="checkbox"
-                        id={`check-${action.id}`}
-                        checked={isChecked}
-                        onChange={() => toggleAction(action.id)}
-                        className="h-4.5 w-4.5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-                      />
-                    </label>
-                    
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className={`text-sm font-bold transition-colors ${
-                          isChecked ? 'text-emerald-400' : 'text-white'
-                        }`}>
-                          {action.title}
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-semibold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-750 shrink-0">
-                          ROI: {action.roiScore}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-normal">
-                        {action.description}
-                      </p>
-                      
-                      <div className="flex gap-4 text-[10px] font-semibold text-slate-500 pt-1.5">
-                        <span>Carbon: -{action.baseCarbonSavings} kg CO₂</span>
-                        <span>Cost: {action.cost}</span>
-                        <span>Effort: {action.effort}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-
           {/* 30-Day Sprint Challenge Board */}
           <Card className="border-indigo-500/10 overflow-hidden" id="challenge-board-card">
             <div className="p-6 bg-gradient-to-r from-[#0d1222] to-[#0f172a] border-b border-slate-850 flex items-center justify-between">
               <div className="space-y-1">
                 <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
                   <Trophy className="h-5 w-5 text-indigo-400" />
-                  {displayChallengeTitle}
+                  Your 30-Day Sprint
                 </CardTitle>
                 <CardDescription className="text-slate-400 text-xs">
-                  {displayChallengeDescription}
+                  {challenge.description}
                 </CardDescription>
               </div>
               <div className="text-right shrink-0">
@@ -477,15 +470,29 @@ export default function Dashboard() {
                   );
                 })}
               </div>
+
+              {weeklyReflection && (
+                <div className="mt-4 p-4 bg-indigo-950/20 border border-indigo-500/20 rounded-xl space-y-2">
+                  <h4 className="text-indigo-400 font-bold text-sm">Weekly Reflection</h4>
+                  <p className="text-slate-300 text-xs">
+                    {weeklyReflection.summary}
+                  </p>
+                  <p className="text-slate-300 text-xs">
+                    <strong>Focus Next Week:</strong> {weeklyReflection.focusNextWeek}
+                  </p>
+                  <p className="text-slate-400 text-xs italic">
+                    &quot;{weeklyReflection.motivationLine}&quot;
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Explainability Panel */}
           <Card className="border-slate-800/60" id="explainability-panel-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                 <ShieldCheck className="h-4.5 w-4.5 text-emerald-500" />
-                Algorithmic Explainability & Calculations
+                Algorithmic Explainability
               </CardTitle>
             </CardHeader>
             <CardContent className="text-xs text-slate-400 space-y-3 leading-relaxed">
@@ -496,20 +503,6 @@ export default function Dashboard() {
                 </Link>
                 .
               </p>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>
-                  <strong className="text-slate-300">Footprint Estimate:</strong> Formulated as the direct sum of lifestyle emissions estimated from parameters verified against global lifecycle carbon metrics (e.g. food delivery packaging transit, grid energy mix intensities).
-                </li>
-                <li>
-                  <strong className="text-slate-300">ROI Score Formula:</strong> Calculated as a weighted linear combination of estimated carbon savings, difficulty friction, cost barrier, and direct profile relevance:
-                  <code className="block bg-slate-900 border border-slate-800 p-2 rounded-lg mt-1.5 font-mono text-[10px] text-slate-300">
-                    ROI Score = (CarbonSavedScore * 0.45 + EaseScore * 0.25 + CheapnessScore * 0.20 + CategoryFitScore * 0.10) * Confidence * 10
-                  </code>
-                </li>
-                <li>
-                  <strong className="text-slate-300">Relevance:</strong> Actions that directly address your highest emission drivers are awarded maximum relevance points, ensuring the most impactful change always bubbles to the top of your checklist.
-                </li>
-              </ul>
             </CardContent>
           </Card>
 

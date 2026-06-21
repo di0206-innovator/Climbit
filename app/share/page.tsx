@@ -1,11 +1,15 @@
 'use client';
 
-import React, { Suspense, useRef, useState } from 'react';
+import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Leaf, Download, Copy, Check, ArrowLeft, Share2 } from 'lucide-react';
 import Button from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { getShareCaptionAction } from '../actions/ai';
+import type { ShareCaption } from '../../lib/gemini';
+import { OnboardingAnswers } from '../../types';
+import { onboardingSchema } from '../../lib/validation/schemas';
 
 function ShareCardContent() {
   const searchParams = useSearchParams();
@@ -13,6 +17,8 @@ function ShareCardContent() {
   
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  
+  const [shareData, setShareData] = useState<ShareCaption | null>(null);
 
   // Read search parameters with sensible defaults
   const persona = searchParams.get('persona') || 'Eco-Conscious Voyager';
@@ -20,12 +26,33 @@ function ShareCardContent() {
   const savings = searchParams.get('savings') || '120';
   const badge = searchParams.get('badge') || 'Eco-Runner';
 
-  // Construct caption text for social sharing
-  const shareCaption = `I just calculated my carbon footprint on Climbit! My climate persona is "${persona}", and my single best next action is to "${topAction}" (saving ${savings} kg CO₂ / month!). Check your carbon footprint and get ranked actions at Climbit! #sustainability #climateaction #climbit`;
+  useEffect(() => {
+    const rawAnswers = localStorage.getItem('climbit_answers');
+    if (rawAnswers) {
+      try {
+        const parsedAnswers = JSON.parse(rawAnswers);
+        const validation = onboardingSchema.safeParse(parsedAnswers);
+        if (!validation.success) {
+          console.error('Invalid onboarding answers on share page:', validation.error);
+          return;
+        }
+        const validatedAnswers = validation.data as OnboardingAnswers;
+        getShareCaptionAction(validatedAnswers, persona, topAction)
+          .then(setShareData)
+          .catch(console.error);
+      } catch (e) {
+        console.error('Failed to parse answers for share caption', e);
+      }
+    }
+  }, [persona, topAction]);
+
+  const displayCaption = shareData 
+    ? `${shareData.caption}\n\n${shareData.hashtags.join(' ')}` 
+    : 'Generating optimized caption...';
 
   const copyCaption = async () => {
     try {
-      await navigator.clipboard.writeText(shareCaption);
+      await navigator.clipboard.writeText(displayCaption);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -242,7 +269,7 @@ function ShareCardContent() {
             <div className="relative">
               <textarea
                 readOnly
-                value={shareCaption}
+                value={displayCaption}
                 className="w-full h-40 bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 font-mono resize-none focus:outline-none focus:border-slate-700"
                 id="share-caption-textarea"
               />
@@ -251,6 +278,7 @@ function ShareCardContent() {
                 className="absolute top-2.5 right-2.5 p-2 rounded-lg bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-white transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 title="Copy caption"
                 id="copy-caption-btn"
+                disabled={!shareData}
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
               </button>

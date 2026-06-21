@@ -1,6 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ArrowLeft, ShieldAlert, BadgeInfo, Scale, Sparkles } from 'lucide-react';
 import Button from '../../components/ui/button';
+
+export const metadata: Metadata = {
+  title: "Algorithm Insights | Climbit",
+  description: "Detailed calculations and Return-on-Investment formulas for the Climbit decision engine.",
+};
 
 export default function Insights() {
   return (
@@ -12,11 +18,9 @@ export default function Insights() {
             Climbit
           </span>
         </Link>
-        <Link href="/dashboard" passHref>
-          <Button variant="outline" size="sm">
-            Dashboard
-          </Button>
-        </Link>
+        <Button href="/dashboard" variant="outline" size="sm">
+          Dashboard
+        </Button>
       </header>
 
       {/* Main Container */}

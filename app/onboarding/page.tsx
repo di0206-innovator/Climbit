@@ -13,7 +13,7 @@ import Button from '../../components/ui/button';
 import Progress from '../../components/ui/progress';
 import { OnboardingAnswers } from '../../types';
 import { onboardingSchema } from '../../lib/validation/schemas';
-import { getAIInsightsAction } from '../actions/ai';
+
 
 interface QuestionOption {
   value: string;
@@ -186,11 +186,6 @@ export default function Onboarding() {
     try {
       // Save answers locally
       localStorage.setItem('climbit_answers', JSON.stringify(finalAnswers));
-
-      // Pre-fetch AI insights and cache them
-      setLoadingMessage('Simulating low-carbon scenarios...');
-      const aiInsights = await getAIInsightsAction(finalAnswers);
-      localStorage.setItem('climbit_ai_insights', JSON.stringify(aiInsights));
     } catch (err) {
       console.error('Error calculating AI insights during onboarding:', err);
     } finally {

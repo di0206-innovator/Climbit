@@ -15,11 +15,9 @@ export default function Home() {
             Climbit
           </span>
         </Link>
-        <Link href="/onboarding" passHref>
-          <Button id="start-onboarding-header" variant="secondary" size="sm">
-            Get Started
-          </Button>
-        </Link>
+        <Button href="/onboarding" id="start-onboarding-header" variant="secondary" size="sm">
+          Get Started
+        </Button>
       </header>
 
       <main className="flex-1 flex flex-col">
@@ -48,12 +46,10 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md">
-              <Link href="/onboarding" className="w-full sm:w-auto" passHref>
-                <Button id="start-onboarding-hero" variant="primary" size="lg" className="w-full flex items-center gap-2">
-                  Find Your Best Next Action
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button href="/onboarding" id="start-onboarding-hero" variant="primary" size="lg" className="w-full sm:w-auto flex items-center gap-2">
+                Find Your Best Next Action
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </section>
@@ -162,12 +158,10 @@ export default function Home() {
               No sign-up required. Walk through onboarding, preview your dashboard, and generate your 30-day sprint card instantly.
             </p>
 
-            <Link href="/onboarding" passHref>
-              <Button id="start-onboarding-cta" variant="primary" size="lg" className="flex items-center gap-2 px-8">
-                Start Onboarding
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
+            <Button href="/onboarding" id="start-onboarding-cta" variant="primary" size="lg" className="flex items-center gap-2 px-8">
+              Start Onboarding
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
         </section>
       </main>
