@@ -1,29 +1,14 @@
-import Link from 'next/link';
-import { Leaf, ArrowRight, ShieldCheck, Zap, BarChart3 } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, BarChart3, Leaf } from 'lucide-react';
 import Button from '../components/ui/button';
+import MiniCalculator from '../components/MiniCalculator';
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen neo-grid text-slate-950 selection:bg-emerald-500/30">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b-3 border-black px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group focus-visible:ring-3 focus-visible:ring-black rounded-lg p-1 outline-none">
-          <div className="h-9 w-9 rounded-xl bg-[#00CC66] border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000000] group-hover:scale-105 transition-transform">
-            <Leaf className="h-5 w-5 text-slate-950 stroke-[2.5]" />
-          </div>
-          <span className="text-xl font-black tracking-tight text-slate-950 group-hover:text-emerald-600 transition-colors">
-            Climbit
-          </span>
-        </Link>
-        <Button href="/onboarding" id="start-onboarding-header" variant="secondary" size="sm">
-          Get Started
-        </Button>
-      </header>
-
       <main className="flex-1 flex flex-col">
         {/* Hero Section */}
-        <section className="relative py-24 px-6 flex flex-col items-center text-center overflow-hidden border-b-3 border-black bg-white">
-          <div className="max-w-3xl flex flex-col items-center relative z-10">
+        <section className="relative py-20 px-6 flex flex-col items-center text-center overflow-hidden border-b-3 border-black bg-white">
+          <div className="max-w-4xl flex flex-col items-center relative z-10">
             <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#00CC66]/10 border-2 border-black text-slate-950 text-xs font-extrabold mb-8 animate-fade-in shadow-[2px_2px_0px_0px_#000000]">
               <Zap className="h-4.5 w-4.5 fill-[#FFD53D] text-slate-950" />
               Next-Gen Climate Decision Engine
@@ -37,7 +22,7 @@ export default function Home() {
               next.
             </h1>
 
-            <p className="text-lg md:text-xl text-slate-700 max-w-xl mb-12 font-semibold leading-relaxed">
+            <p className="text-lg md:text-xl text-slate-700 max-w-xl mb-8 font-semibold leading-relaxed">
               Understand your carbon footprint, identify high-impact lifestyle habits, and discover a personalized path ranked by carbon savings, cost, and effort.
             </p>
 
@@ -47,8 +32,21 @@ export default function Home() {
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
+
+            {/* Interactive Mini-Calculator */}
+            <MiniCalculator />
           </div>
         </section>
+
+        {/* Marquee Ticker */}
+        <div className="w-full bg-[#B288FF] border-b-3 border-black py-3 overflow-hidden flex whitespace-nowrap relative z-20">
+          <div className="animate-marquee inline-block font-black text-slate-950 uppercase tracking-widest text-sm">
+            🔥 5,420 kg CO₂ saved by the Climbit community this week &nbsp; • &nbsp; 🌿 142 AI Auto-Logs processed today &nbsp; • &nbsp; 🏆 Top Action: Switching to LED Bulbs &nbsp; • &nbsp; 🔥 5,420 kg CO₂ saved by the Climbit community this week &nbsp; • &nbsp; 🌿 142 AI Auto-Logs processed today &nbsp; • &nbsp; 🏆 Top Action: Switching to LED Bulbs &nbsp; • &nbsp;
+          </div>
+          <div className="animate-marquee inline-block font-black text-slate-950 uppercase tracking-widest text-sm" aria-hidden="true">
+            🔥 5,420 kg CO₂ saved by the Climbit community this week &nbsp; • &nbsp; 🌿 142 AI Auto-Logs processed today &nbsp; • &nbsp; 🏆 Top Action: Switching to LED Bulbs &nbsp; • &nbsp; 🔥 5,420 kg CO₂ saved by the Climbit community this week &nbsp; • &nbsp; 🌿 142 AI Auto-Logs processed today &nbsp; • &nbsp; 🏆 Top Action: Switching to LED Bulbs &nbsp; • &nbsp;
+          </div>
+        </div>
 
         {/* Problem Statement */}
         <section className="py-20 px-6 max-w-6xl mx-auto w-full">

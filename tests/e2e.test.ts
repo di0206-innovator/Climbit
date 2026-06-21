@@ -9,7 +9,7 @@ test.describe('Climbit E2E User Flow', () => {
     page.on('pageerror', err => console.error('BROWSER ERROR:', err.message));
 
     // 1. Visit Landing Page
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     
     // Check heading
     const title = page.locator('h1');
@@ -19,6 +19,9 @@ test.describe('Climbit E2E User Flow', () => {
     const getStartedBtn = page.locator('#start-onboarding-hero');
     await getStartedBtn.click();
     await expect(page).toHaveURL(/\/onboarding/);
+    
+    // Wait for hydration to ensure React event listeners are fully bound
+    await page.waitForTimeout(500);
 
     // 3. Complete Onboarding Form (8 Questions)
     // Q1: Role -> Student
@@ -63,7 +66,7 @@ test.describe('Climbit E2E User Flow', () => {
 
     // 4. Verification on Results Dashboard
     // It should have navigated to /dashboard
-    await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+    await page.waitForURL(/\/dashboard/, { timeout: 15000, waitUntil: 'domcontentloaded' });
     
     // Verify Monthly Total heading exists
     const monthlyEmissions = page.locator('span:has-text("kg CO₂ / month")').locator('xpath=..');
@@ -92,7 +95,7 @@ test.describe('Climbit E2E User Flow', () => {
     // 6. Navigate to share page and verify share card matches inputs
     const shareBtn = page.locator('#go-share-btn');
     await shareBtn.click();
-    await page.waitForURL(/\/share/);
+    await page.waitForURL(/\/share/, { waitUntil: 'domcontentloaded' });
     
     await expect(page.locator('h1')).toContainText('Your Shareable Impact Card');
     await expect(page.locator('#share-card-container')).toBeVisible();
@@ -100,7 +103,7 @@ test.describe('Climbit E2E User Flow', () => {
   });
 
   test('should pass basic accessibility audit on the landing page', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     
     // Scan landing page accessibility structure
     const results = await new AxeBuilder({ page })

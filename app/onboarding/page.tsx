@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
 import { 
   GraduationCap, Briefcase, User, Home, Building2, School, 
   Bike, Bus, Car, Carrot, Egg, Soup, Drumstick,
@@ -13,6 +13,9 @@ import Button from '../../components/ui/button';
 import Progress from '../../components/ui/progress';
 import { OnboardingAnswers } from '../../types';
 import { onboardingSchema } from '../../lib/validation/schemas';
+import { calculateFootprint, rankActions, generateChallenge } from '../../lib/carbon';
+import { saveUserProfile } from '../../lib/supabase';
+import { useClimbitStore } from '../../lib/store';
 
 interface QuestionOption {
   value: string;
@@ -117,11 +120,34 @@ const QUESTIONS: Question[] = [
 
 export default function Onboarding() {
   const router = useRouter();
+  const { userId, getToken } = useAuth();
+  const setOnboardingStep = useClimbitStore((state) => state.setOnboardingStep);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Partial<OnboardingAnswers>>({});
   const [loading, setLoading] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState('Analysing your answers...');
+  const [loadingStep, setLoadingStep] = useState(0);
   const optionsRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Sync step count with global header
+  useEffect(() => {
+    setOnboardingStep(currentStep);
+  }, [currentStep, setOnboardingStep]);
+
+  // Loading screen steps simulator
+  useEffect(() => {
+    if (!loading) return;
+    const interval = setInterval(() => {
+      setLoadingStep((prev) => (prev < 3 ? prev + 1 : prev));
+    }, 900);
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  const loadingMessages = [
+    'Parsing lifestyle responses...',
+    'Correlating regional agricultural lifecycle factors...',
+    'Evaluating transport grid carbon intensity...',
+    'Formulating personalized 30-day carbon roadmap...'
+  ];
 
   const question = QUESTIONS[currentStep];
   const progressPercent = Math.round(((currentStep + 1) / QUESTIONS.length) * 100);
@@ -180,11 +206,32 @@ export default function Onboarding() {
     }
 
     setLoading(true);
-    setLoadingMessage('Prioritising custom actions...');
+    setLoadingStep(0);
 
     try {
-      // Save answers locally
+      // Always save answers locally for immediate UX
       localStorage.setItem('climbit_answers', JSON.stringify(finalAnswers));
+
+      // If authenticated, sync to Supabase
+      if (userId) {
+        const token = await getToken({ template: 'supabase' });
+        if (token) {
+          const calculatedFootprint = calculateFootprint(finalAnswers);
+          const ranked = rankActions(finalAnswers, calculatedFootprint);
+          const generatedChallenge = generateChallenge(finalAnswers, ranked);
+
+          await saveUserProfile(token, userId, {
+            answers_json: finalAnswers,
+            footprint_json: calculatedFootprint,
+            challenge_json: generatedChallenge,
+            ranked_actions_json: ranked,
+            selected_actions: ranked.length > 0 ? [ranked[0].id] : []
+          });
+        }
+      }
+      
+      // Keep loading on screen briefly for animated checkpoints
+      await new Promise((resolve) => setTimeout(resolve, 3800));
     } catch (err) {
       console.error('Error calculating AI insights during onboarding:', err);
     } finally {
@@ -195,29 +242,34 @@ export default function Onboarding() {
 
   return (
     <div className="flex flex-col min-h-screen neo-grid text-slate-950 selection:bg-emerald-500/30">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b-3 border-black px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group focus-visible:ring-3 focus-visible:ring-black rounded-lg p-1 outline-none">
-          <span className="text-xl font-black tracking-tight text-slate-950">
-            Climbit
-          </span>
-        </Link>
-        <span className="text-xs font-black text-slate-700 bg-white border-2 border-black px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_#000000]">
-          Question {currentStep + 1} of {QUESTIONS.length}
-        </span>
-      </header>
-
       {/* Main Flow */}
       <main className="flex-1 flex flex-col justify-center items-center px-4 py-8 max-w-4xl mx-auto w-full">
         {loading ? (
-          <div className="flex flex-col items-center justify-center space-y-6 text-center animate-fade-in">
+          <div className="flex flex-col items-center justify-center space-y-6 text-center animate-fade-in bg-white border-3 border-black p-10 rounded-3xl shadow-[5px_5px_0px_0px_#000000] max-w-md w-full relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(rgba(0,0,0,0.04)_1.5px,transparent_1.5px)] bg-[size:16px_16px] pointer-events-none" />
             <div className="relative flex items-center justify-center">
-              <div className="h-16 w-16 rounded-full border-4 border-black border-t-[#00CC66] animate-spin" />
+              <div className="h-16 w-16 rounded-full border-4 border-black border-t-[#00CC66] border-r-[#B288FF] animate-spin" />
               <Sparkles className="absolute h-6 w-6 text-[#FFD53D] animate-pulse" />
             </div>
-            <div>
-              <h2 className="text-2xl font-black text-slate-950 mb-2">Climbit Engine Running</h2>
-              <p className="text-slate-700 text-sm font-semibold max-w-xs">{loadingMessage}</p>
+            <div className="space-y-4 relative z-10">
+              <h2 className="text-xl font-black text-slate-950">Climbit Engine Running</h2>
+              <div className="space-y-2">
+                {loadingMessages.map((msg, i) => (
+                  <div 
+                    key={i} 
+                    className={`flex items-center gap-2 text-xs font-bold transition-all duration-300 ${
+                      i < loadingStep 
+                        ? 'text-slate-400 line-through' 
+                        : i === loadingStep 
+                        ? 'text-[#00CC66] scale-102 font-black' 
+                        : 'text-slate-400 opacity-60'
+                    }`}
+                  >
+                    <div className={`h-2 w-2 rounded-full border border-black ${i <= loadingStep ? 'bg-[#00CC66]' : 'bg-slate-200'}`} />
+                    {msg}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : (

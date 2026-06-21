@@ -28,6 +28,16 @@ function ShareCardContent() {
   const grade = searchParams.get('grade') || 'B';
   const gradeColor = searchParams.get('gradeColor') || '#FFD53D';
 
+  const [activeTheme, setActiveTheme] = useState<'forest' | 'sunset' | 'cyber'>('forest');
+
+  const THEMES = {
+    forest: { bg: '#FFFDF5', textAccent: '#00CC66', canvasBg: '#FAF6EE' },
+    sunset: { bg: '#FFF5F0', textAccent: '#FF7E40', canvasBg: '#FCF3EE' },
+    cyber: { bg: '#FAF5FF', textAccent: '#B288FF', canvasBg: '#F7EEFC' },
+  };
+
+  const currentTheme = THEMES[activeTheme];
+
   useEffect(() => {
     const rawAnswers = localStorage.getItem('climbit_answers');
     if (rawAnswers) {
@@ -75,7 +85,7 @@ function ShareCardContent() {
     }
 
     // 1. Draw beautiful cream background
-    ctx.fillStyle = '#FAF6EE';
+    ctx.fillStyle = currentTheme.canvasBg;
     ctx.fillRect(0, 0, 1200, 630);
 
     // 2. Draw subtle dots grid pattern
@@ -153,12 +163,12 @@ function ShareCardContent() {
     ctx.font = '900 48px var(--font-geist-sans), sans-serif';
     ctx.fillText(persona, 170, 295);
 
-    // 7. Draw Top Action
+      // 7. Draw Top Action
     ctx.fillStyle = '#4b5563'; // gray-600
     ctx.font = '800 16px var(--font-geist-sans), sans-serif';
     ctx.fillText('MY BEST NEXT ACTION', 170, 370);
 
-    ctx.fillStyle = '#00CC66';
+    ctx.fillStyle = currentTheme.textAccent;
     ctx.font = '900 30px var(--font-geist-sans), sans-serif';
     ctx.fillText(topAction, 170, 420);
     ctx.strokeStyle = '#000000';
@@ -201,6 +211,19 @@ function ShareCardContent() {
     ctx.font = '900 16px var(--font-geist-sans), sans-serif';
     ctx.fillText('climbit.vercel.app', 850, 500);
 
+    // 9. Add holographic trading card shine
+    const gradient = ctx.createLinearGradient(100, 80, 1100, 550);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    gradient.addColorStop(0.4, 'rgba(255, 255, 255, 0)');
+    gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+    gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.roundRect(100, 80, 1000, 470, 24);
+    ctx.fill();
+
     // Save/trigger download
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
@@ -223,12 +246,20 @@ function ShareCardContent() {
         {/* Shareable Card Box */}
         <div 
           ref={cardRef}
-          className="w-full aspect-[1.91/1] rounded-3xl p-8 relative flex flex-col justify-between overflow-hidden border-3 border-black shadow-[6px_6px_0px_0px_#000000] bg-[#FFFDF5]"
-          style={{ contentVisibility: 'auto' }}
+          role="img"
+          aria-label="Preview of your Shareable Climate Persona Trading Card"
+          className="w-full aspect-[1.91/1] rounded-3xl p-8 relative flex flex-col justify-between overflow-hidden border-3 border-black shadow-[6px_6px_0px_0px_#000000]"
+          style={{ 
+            contentVisibility: 'auto',
+            backgroundColor: currentTheme.bg
+          }}
           id="share-card-container"
         >
           {/* Subtle dot pattern inside card */}
           <div className="absolute inset-0 bg-[radial-gradient(rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
+          
+          {/* CSS Holographic shine */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
           
           <div className="flex justify-between items-center relative z-10">
               <div className="flex items-center gap-2">
@@ -268,7 +299,7 @@ function ShareCardContent() {
               <span className="text-[10px] text-slate-655 font-black tracking-wider uppercase block">
                 My Best Next Action
               </span>
-              <h3 className="text-lg md:text-xl font-black text-[#00CC66] tracking-tight mt-0.5" style={{ WebkitTextStroke: '1px black' }}>
+              <h3 className="text-lg md:text-xl font-black tracking-tight mt-0.5 animate-pulse" style={{ WebkitTextStroke: '1px black', color: currentTheme.textAccent }}>
                 {topAction}
               </h3>
             </div>
@@ -295,9 +326,41 @@ function ShareCardContent() {
           {downloading ? 'Generating PNG...' : 'Download Card Image (PNG)'}
         </Button>
       </div>
-
-      {/* RIGHT: Captions & Links */}
+ 
+      {/* RIGHT: Captions, Themes & Links */}
       <div className="w-full md:w-80 space-y-6">
+        {/* Custom Theme Selector */}
+        <Card id="theme-selector-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-black text-slate-950">
+              Customize Visual Card
+            </CardTitle>
+            <CardDescription>
+              Select a color theme for your downloadable card.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2">
+            <button 
+              onClick={() => setActiveTheme('forest')}
+              className={`flex-1 py-1.5 px-2 border-2 border-black rounded-lg text-[10px] font-black uppercase transition-all shadow-[1.5px_1.5px_0px_0px_#000000] active:translate-y-px ${activeTheme === 'forest' ? 'bg-[#00CC66] text-black font-extrabold shadow-none translate-y-px' : 'bg-white hover:bg-slate-50'}`}
+            >
+              Forest
+            </button>
+            <button 
+              onClick={() => setActiveTheme('sunset')}
+              className={`flex-1 py-1.5 px-2 border-2 border-black rounded-lg text-[10px] font-black uppercase transition-all shadow-[1.5px_1.5px_0px_0px_#000000] active:translate-y-px ${activeTheme === 'sunset' ? 'bg-[#FF7E40] text-black font-extrabold shadow-none translate-y-px' : 'bg-white hover:bg-slate-50'}`}
+            >
+              Sunset
+            </button>
+            <button 
+              onClick={() => setActiveTheme('cyber')}
+              className={`flex-1 py-1.5 px-2 border-2 border-black rounded-lg text-[10px] font-black uppercase transition-all shadow-[1.5px_1.5px_0px_0px_#000000] active:translate-y-px ${activeTheme === 'cyber' ? 'bg-[#B288FF] text-black font-extrabold shadow-none translate-y-px' : 'bg-white hover:bg-slate-50'}`}
+            >
+              Cyber
+            </button>
+          </CardContent>
+        </Card>
+
         <Card id="share-info-card">
           <CardHeader>
             <CardTitle className="text-base font-black text-slate-950 flex items-center gap-2">
@@ -322,6 +385,7 @@ function ShareCardContent() {
                 onClick={copyCaption}
                 className="absolute top-2.5 right-2.5 p-2 rounded-lg bg-white border-2 border-black hover:bg-slate-50 text-slate-900 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-black"
                 title="Copy caption"
+                aria-label="Copy LinkedIn caption to clipboard"
                 id="copy-caption-btn"
                 disabled={!shareData}
               >
@@ -348,13 +412,6 @@ function ShareCardContent() {
 export default function SharePage() {
   return (
     <div className="flex flex-col min-h-screen neo-grid text-slate-950 pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b-3 border-black px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 focus-visible:ring-3 focus-visible:ring-black rounded-lg p-1 outline-none">
-          <span className="text-xl font-black tracking-tight text-slate-950">Climbit</span>
-        </Link>
-      </header>
-
       <main className="flex-1 flex flex-col justify-center py-8">
         <div className="max-w-4xl mx-auto w-full px-4 mb-4">
           <h1 className="text-3xl font-black text-slate-950 tracking-tight">Your Shareable Impact Card</h1>

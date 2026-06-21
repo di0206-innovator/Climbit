@@ -1,0 +1,18 @@
+{
+  "name": "Climbit",
+  "short_name": "Climbit",
+  "description": "Personalised Carbon Awareness Decision Engine",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00CC66",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

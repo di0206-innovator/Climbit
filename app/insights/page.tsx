@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowLeft, ShieldAlert, BadgeInfo, Scale, Sparkles } from 'lucide-react';
-import Button from '../../components/ui/button';
 
 export const metadata: Metadata = {
   title: "Algorithm Insights | Climbit",
@@ -11,17 +10,6 @@ export const metadata: Metadata = {
 export default function Insights() {
   return (
     <div className="min-h-screen neo-grid text-slate-950 selection:bg-emerald-500/30 pb-20">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b-3 border-black px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group focus-visible:ring-3 focus-visible:ring-black rounded-lg p-1 outline-none">
-          <span className="text-xl font-black tracking-tight text-slate-950">
-            Climbit
-          </span>
-        </Link>
-        <Button href="/dashboard" variant="outline" size="sm">
-          Dashboard
-        </Button>
-      </header>
 
       {/* Main Container */}
       <main className="max-w-3xl mx-auto px-4 mt-12 space-y-10">
