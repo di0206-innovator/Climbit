@@ -158,7 +158,9 @@ export default function Dashboard() {
     persona: profileSummary?.personaTitle || footprint.personaTitle,
     topAction: topAction.title,
     savings: (simulation.monthlyReduction || topAction.baseCarbonSavings).toString(),
-    badge: challenge.badge
+    badge: challenge.badge,
+    grade: footprint.carbonGrade,
+    gradeColor: footprint.carbonGradeColor
   }).toString();
 
   return (
@@ -191,7 +193,7 @@ export default function Dashboard() {
         <div className="lg:col-span-1 space-y-6">
           
           <Card className="relative overflow-hidden bg-[#E8F8F0] border-3 border-black shadow-[4px_4px_0px_0px_#000000]" id="footprint-profile-card">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 relative">
               <CardDescription className="text-slate-700 font-extrabold uppercase tracking-wider text-[10px]">
                 Estimated Footprint
               </CardDescription>
@@ -199,6 +201,14 @@ export default function Dashboard() {
                 {footprint.monthlyTotal}
                 <span className="text-xs font-bold text-slate-700 tracking-normal">kg CO₂ / month</span>
               </CardTitle>
+              {/* Carbon Grade Stamp */}
+              <div 
+                className="absolute right-4 top-4 border-3 border-black font-black uppercase text-center px-2.5 py-1 rotate-[6deg] shadow-[2px_2px_0px_0px_#000000] text-xs md:text-sm"
+                style={{ backgroundColor: footprint.carbonGradeColor }}
+                id="carbon-grade-stamp"
+              >
+                Grade {footprint.carbonGrade}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-sm font-semibold text-slate-700">
@@ -209,13 +219,46 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4.5 w-4.5 text-[#FFD53D] fill-[#FFD53D]/25 stroke-[2]" />
                   <span className="text-xs font-black text-slate-950 uppercase tracking-wide">
-                    Persona: {profileSummary ? profileSummary.personaTitle : 'Loading...'}
+                    Persona: {profileSummary ? profileSummary.personaTitle : (footprint.personaTitle || 'Loading...')}
                   </span>
                 </div>
                 <p className="text-xs text-slate-700 font-semibold leading-relaxed">
-                  {profileSummary ? profileSummary.personaSummary : 'Analyzing your footprint...'}
+                  {profileSummary ? profileSummary.personaSummary : (footprint.personaSummary || 'Analyzing your footprint...')}
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Sector Report Card */}
+          <Card className="bg-[#FFFDF5] border-3 border-black shadow-[4px_4px_0px_0px_#000000]" id="sector-report-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-black text-slate-950 flex items-center gap-2">
+                Climate Report Card
+              </CardTitle>
+              <CardDescription>
+                Detailed breakdown of grades by lifestyle category.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-2">
+              {footprint.categoryGrades.map((cg) => (
+                <div key={cg.name} className="flex items-center justify-between border-2 border-black p-2.5 bg-white shadow-[2px_2px_0px_0px_#000000] rounded-xl gap-3">
+                  <div className="space-y-0.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-extrabold text-xs text-slate-950 uppercase tracking-wide">{cg.label}</span>
+                      <span className="text-[10px] text-slate-500 font-bold">({cg.value} kg/mo)</span>
+                    </div>
+                    <p className="text-[10px] text-slate-700 leading-normal font-semibold truncate md:whitespace-normal">
+                      {cg.description}
+                    </p>
+                  </div>
+                  <div 
+                    className="h-8 w-8 border-2 border-black rounded-lg flex items-center justify-center font-black text-xs text-slate-950 shrink-0 shadow-[1px_1px_0px_0px_#000000]"
+                    style={{ backgroundColor: cg.color }}
+                  >
+                    {cg.grade}
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
 
@@ -230,6 +273,31 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="pt-2">
               <FootprintChart categories={footprint.categories} />
+            </CardContent>
+          </Card>
+
+          {/* Global Impact Equivalences */}
+          <Card className="bg-[#FFFDF5] border-3 border-black shadow-[4px_4px_0px_0px_#000000]" id="equivalences-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-black text-slate-950">
+                Your Global Impact
+              </CardTitle>
+              <CardDescription>
+                Emissions in everyday equivalent terms.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-3 pt-2">
+              {footprint.equivalences.map((eq) => (
+                <div key={eq.label} className="flex items-center gap-3 border-2 border-black p-3 rounded-xl bg-white shadow-[2px_2px_0px_0px_#000000]">
+                  <div className="text-2xl h-10 w-10 flex items-center justify-center rounded-lg border-2 border-black shrink-0" style={{ backgroundColor: eq.color }}>
+                    {eq.icon}
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 font-black block uppercase tracking-wider">{eq.label}</span>
+                    <span className="text-sm font-black text-slate-950">{eq.value} {eq.unit}</span>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
 
@@ -351,6 +419,31 @@ export default function Dashboard() {
                 <span className="text-xs font-black text-slate-900">Include in simulation</span>
               </label>
             </CardFooter>
+          </Card>
+
+          {/* Coach's Action Plan */}
+          <Card className="bg-[#EBF4FF] border-3 border-black shadow-[4px_4px_0px_0px_#000000]" id="coaching-tips-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-black text-slate-950 flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-[#B288FF] fill-[#B288FF]/20" />
+                Coach&apos;s Action Plan
+              </CardTitle>
+              <CardDescription>
+                Tailored recommendations based on your answer combinations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2.5 pt-2">
+              {(footprint.coachTips || [footprint.coachTip]).map((tip, idx) => (
+                <div key={idx} className="flex gap-2.5 items-start bg-white border-2 border-black p-3 rounded-xl text-xs text-slate-800 font-semibold shadow-[2px_2px_0px_0px_#000000]">
+                  <span className="h-5 w-5 rounded-full bg-[#B288FF] text-slate-950 border-2 border-black flex items-center justify-center font-black text-[10px] shrink-0">
+                    {idx + 1}
+                  </span>
+                  <p className="leading-relaxed">
+                    {tip}
+                  </p>
+                </div>
+              ))}
+            </CardContent>
           </Card>
 
           <Card id="habit-simulator-card">

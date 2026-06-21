@@ -26,6 +26,25 @@ export interface FootprintResult {
   personaTitle: string;
   personaSummary: string;
   coachTip: string;
+  coachTips: string[];
+  carbonGrade: string;
+  carbonGradeLabel: string;
+  carbonGradeColor: string;
+  equivalences: Array<{
+    icon: string;
+    value: number;
+    label: string;
+    unit: string;
+    color: string;
+  }>;
+  categoryGrades: Array<{
+    name: 'commute' | 'diet' | 'electricity' | 'ac' | 'delivery' | 'travel';
+    label: string;
+    grade: string;
+    color: string;
+    description: string;
+    value: number;
+  }>;
 }
 
 export interface ActionItem {

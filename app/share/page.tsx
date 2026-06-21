@@ -25,6 +25,8 @@ function ShareCardContent() {
   const topAction = searchParams.get('topAction') || 'Optimise daily habits';
   const savings = searchParams.get('savings') || '120';
   const badge = searchParams.get('badge') || 'Eco-Runner';
+  const grade = searchParams.get('grade') || 'B';
+  const gradeColor = searchParams.get('gradeColor') || '#FFD53D';
 
   useEffect(() => {
     const rawAnswers = localStorage.getItem('climbit_answers');
@@ -172,6 +174,28 @@ function ShareCardContent() {
     ctx.font = '950 24px var(--font-geist-sans), sans-serif';
     ctx.fillText(`-${savings} kg CO₂ / month`, 490, 485);
 
+    // Draw Carbon Grade stamp on canvas
+    ctx.save();
+    ctx.translate(900, 320);
+    ctx.rotate(6 * Math.PI / 180);
+    ctx.fillStyle = gradeColor;
+    ctx.beginPath();
+    ctx.roundRect(-80, -35, 160, 70, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(-80, -35, 160, 70, 12);
+    ctx.stroke();
+
+    ctx.fillStyle = '#000000';
+    ctx.font = '900 22px var(--font-geist-sans), sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('GRADE', 0, -5);
+    ctx.font = '950 26px var(--font-geist-sans), sans-serif';
+    ctx.fillText(grade, 0, 22);
+    ctx.restore();
+
     // URL tag at bottom right
     ctx.fillStyle = '#000000';
     ctx.font = '900 16px var(--font-geist-sans), sans-serif';
@@ -207,18 +231,27 @@ function ShareCardContent() {
           <div className="absolute inset-0 bg-[radial-gradient(rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
           
           <div className="flex justify-between items-center relative z-10">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-[#00CC66] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_#000000]">
-                <Leaf className="h-4 w-4 text-slate-950 stroke-[2.5]" />
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-[#00CC66] border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_0px_#000000]">
+                  <Leaf className="h-4 w-4 text-slate-950 stroke-[2.5]" />
+                </div>
+                <span className="text-base font-black text-slate-950 tracking-tight">
+                  Climbit
+                </span>
               </div>
-              <span className="text-base font-black text-slate-950 tracking-tight">
-                Climbit
-              </span>
-            </div>
-            
-            <span className="px-3.5 py-1 rounded-full bg-[#FFD53D] text-slate-950 border-2 border-black text-[9px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000000]">
-              {badge}
-            </span>
+              
+              <div className="flex items-center gap-2">
+                {/* Carbon Grade Stamp Badge */}
+                <div 
+                  className="border-2 border-black font-black uppercase text-center px-2.5 py-0.5 rotate-[6deg] shadow-[1.5px_1.5px_0px_0px_#000000] text-[10px]"
+                  style={{ backgroundColor: gradeColor }}
+                >
+                  Grade {grade}
+                </div>
+                <span className="px-3.5 py-1 rounded-full bg-[#FFD53D] text-slate-950 border-2 border-black text-[9px] font-black uppercase tracking-widest shadow-[1.5px_1.5px_0px_0px_#000000]">
+                  {badge}
+                </span>
+              </div>
           </div>
 
           <div className="space-y-4 relative z-10 my-auto">
