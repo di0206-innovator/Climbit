@@ -14,9 +14,9 @@ Instead of simply calculating a user's carbon footprint and throwing a guilt-tri
 
 This application was built under a rigorous, grueling 12-hour sprint constraint. We started at a leaderboard rank of **28,897** and pushed the project into the **top 500 (Rank 449)** by refusing to settle for "hackathon quality." 
 
-We deliberately chose the hard path. We didn't build a brittle wrapper around an AI API. Instead, we engineered a production-ready application:
+We deliberately chose the hard path. We didn't build a brittle wrapper around an AI API. Instead, we orchestrated a production-ready application:
 
-*   **We built a custom Token-Bucket Rate Limiter** to mathematically secure our Server Actions against abuse, instead of just hoping for the best.
+*   **We built a custom Token-Bucket Rate Limiter** to mathematically secure our Server Actions against abuse.
 *   **We fought Next.js SSR Hydration errors** to force `recharts` to render responsive, animated SVGs without a single Cumulative Layout Shift (CLS), earning a **100% Efficiency Score**.
 *   **We mandated Playwright and Vitest E2E test suites** (34 passing tests) in the middle of the night to validate our Zod schemas and carbon math logic.
 *   **We hunted down silent ghost errors**—unused `catch` variables and unhandled `console.warn` logs from Supabase JWT syncs—to achieve a 0-warning ESLint build and push our Code Quality scores to the elite tier.
@@ -25,36 +25,104 @@ We poured sweat, strict typing, and uncompromising engineering standards into th
 
 ---
 
+## 🧠 Why We Built Climbit
+
+Most carbon footprint tools answer a very basic question:
+*"How much carbon do I emit?"*
+
+Climbit answers the critical follow-up:
+*"What should I actually do about it right now?"*
+
+We observed that awareness alone rarely changes behavior. Users often receive large, intimidating carbon numbers without context, followed by generic recommendations and overwhelming action lists. 
+
+By combining **deterministic carbon modeling** with **AI-powered personalization**, Climbit shifts the paradigm from "tracking" to "decision intelligence." It negotiates with the user. It finds practical actions that fit their specific lifestyle, budget, and willingness to change, rather than just preaching at them.
+
+---
+
+## 🏛️ AI Architecture & Orchestration
+
+Climbit uses a strict separation of concerns. **AI assists, but deterministic logic decides.** 
+
+To impress upon the orchestration, we refused to let the LLM do the math. Large Language Models are prone to hallucination when calculating numbers. Instead, we architected a system where strict TypeScript algorithms handle the ROI calculations, and the AI is used strictly as a semantic interpretation and negotiation layer.
+
+```text
+User Inputs (Onboarding)
+         │
+         ▼
+    Carbon Engine
+   (Deterministic TypeScript)
+         │
+         ▼
+  ROI Ranking Engine
+ (Math-based Prioritization)
+         │
+ ┌───────┼─────────┐
+ ▼       ▼         ▼
+Persona  Insights  Challenges
+         │
+         ▼
+    Gemini Layer 
+ (Strict Zod JSON Schema / Server Actions)
+         │
+         ▼
+  Climbit Dashboard (Next.js App Router)
+```
+
+By routing all AI requests through Next.js Server Actions, API keys are completely hidden from the client, and payload responses are strictly typed and validated using Zod schemas before ever touching the React state.
+
+---
+
+## 🤖 Why Gemini?
+
+We specifically orchestrated Google Gemini (`gemini-1.5-flash-latest`) over other models because of its unique multimodal and structured capabilities:
+
+1.  **Strict JSON Generation:** Gemini allows us to enforce `responseMimeType: 'application/json'`, which guarantees that the UI never breaks trying to parse conversational text into our React components.
+2.  **Multimodal Vision:** For frictionless logging, users can snap a photo of a receipt or utility bill. Gemini's vision capabilities instantly extract the context.
+3.  **Voice Context Processing:** Parsing messy audio transcripts into structured carbon categories requires an LLM that understands semantic intent quickly.
+4.  **Lightning-Fast Inference:** Because we use Gemini in the critical path of the onboarding flow, we needed sub-second inference speeds. `1.5-flash-latest` provided the perfect balance of intelligence and latency.
+
+---
+
+## 📊 Calculation Formulas & Rules
+
+To ensure scientific accuracy and prevent AI hallucinations, all math is hardcoded in the deterministic engine (`lib/carbon.ts`).
+
+### 1. Carbon Footprint Profile
+Emissions are calculated monthly (kg CO₂ / month) as the direct sum of lifestyle metrics:
+$$\text{Total Footprint} = \text{Commute} + \text{Diet} + \text{Home Electricity} + \text{AC} + \text{Deliveries} + \text{Travel}$$
+
+### 2. Action ROI Ranking
+Recommendations are not random. They are prioritized by an **ROI Score (0-100)** calculated by a strict algorithmic weighting:
+$$\text{ROI} = \left( \text{CarbonScore} \times 0.45 + \text{EffortScore} \times 0.25 + \text{CostScore} \times 0.20 + \text{RelevanceScore} \times 0.10 \right) \times \text{Confidence} \times 10$$
+
+---
+
 ## 🚀 Key Features
 
-*   **AI Auto-Logger (Vision & Voice):** Frictionless logging using Google Gemini (`gemini-1.5-flash-latest`). Snap a photo of a receipt or tap the microphone—Gemini instantly extracts context, categorizes it, and calculates the footprint.
+*   **AI Auto-Logger (Vision & Voice):** Frictionless logging using Gemini.
 *   **Predictive "Path to Net Zero" Modeling:** A dynamic 5-year projection chart mapping your current footprint against aggressive reduction targets.
 *   **Carbon Negotiator:** If an action is too hard, the "Objection Handler" negotiates an alternative that fits your constraints, budget, and lifestyle.
-*   **Holographic Trading Cards:** Auto-generated Neo-Brutalist trading cards with CSS/Canvas holographic shines to export your "Climate Persona" to LinkedIn.
+*   **Holographic Trading Cards:** Auto-generated Neo-Brutalist trading cards with CSS/Canvas holographic shines to export your "Climate Persona".
 *   **100% Accessible PWA:** Fully installable Progressive Web App with offline caching, perfect Lighthouse accessibility scores (99%), robust ARIA labels, and full keyboard navigation.
 
 ---
 
-## 🏛️ Architecture & Clean File Structure
+## 📁 Clean File Structure
 
-We utilize a strict separation of concerns, typical of high-tier Next.js 15 (App Router) applications. AI assists, but the deterministic engine decides.
+We adhere to strict Next.js 15 (App Router) best practices:
 
 ```text
 Climbit/
 ├── app/                  # Next.js App Router (Pages, Layouts, Server Actions)
 │   ├── actions/          # Secure Server Actions (AI, Vision, Voice)
-│   ├── dashboard/        # Authenticated User Dashboard
-│   └── onboarding/       # Gamified Onboarding Flow
+│   └── dashboard/        # Authenticated User Dashboard
 ├── components/           # Reusable React UI Components (Strictly typed)
 ├── lib/                  # Core Business Logic
 │   ├── carbon.ts         # Deterministic Math & ROI Engine
 │   ├── env.ts            # Zod Environment Validation
-│   ├── gemini.ts         # LLM Prompts & Inference Layer
 │   ├── rate-limit.ts     # In-Memory Token Bucket Limiter
 │   └── validation/       # Zod Schemas
-├── public/               # Static Assets (Images, Manifest, Service Workers)
 ├── tests/                # 34 Vitest Unit Tests & Playwright E2E Config
-├── types/                # Global TypeScript Interfaces
 └── supabase_schema.sql   # Relational Database Models & RLS Policies
 ```
 
@@ -63,8 +131,8 @@ Climbit/
 ## 🔒 Security & Best Practices (For the Senior Devs)
 
 We treated security and code quality as first-class citizens:
-1.  **Zero Secrets Committed:** All `.env` files are strictly ignored. `lib/env.ts` handles runtime validation with Zod to ensure the app gracefully warns developers instead of crashing if keys are missing.
-2.  **Server-Side AI Inference:** API keys (`GEMINI_API_KEY`) never leak to the client. All AI generation happens via `'use server'` actions.
+1.  **Zero Secrets Committed:** All `.env` files are strictly ignored. `lib/env.ts` handles runtime validation with Zod.
+2.  **Server-Side AI Inference:** API keys (`GEMINI_API_KEY`) never leak to the client.
 3.  **Strict Linting:** 0 ESLint warnings. 0 TypeScript `any` types in the core data path.
 4.  **Accessibility (a11y):** Native `<fieldset>` and `<legend>` wrapping, `radiogroup` ARIA attributes, and high-contrast color tokens.
 
@@ -96,9 +164,6 @@ npm run dev
 
 ### 4. Run Test Suites
 ```bash
-# Unit Tests
 npx vitest run
-
-# E2E Tests
 npx playwright test
 ```
