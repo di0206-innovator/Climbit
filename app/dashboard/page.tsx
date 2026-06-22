@@ -218,7 +218,13 @@ export default function Dashboard() {
         
         {/* LEFT COLUMN */}
         <div className="lg:col-span-1 space-y-6">
-          <CarbonOverview />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <CarbonOverview />
+          </motion.div>
           
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -354,9 +360,27 @@ export default function Dashboard() {
 
         {/* MIDDLE & RIGHT COLUMNS */}
         <div className="lg:col-span-2 space-y-6">
-          <ActionRecommendations />
-          <AILoggerPanel />
-          <ChallengeTracker />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <ActionRecommendations />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <AILoggerPanel />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+          >
+            <ChallengeTracker />
+          </motion.div>
         </div>
       </main>
     </div>

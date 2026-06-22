@@ -31,6 +31,19 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Climbit",
   },
+  openGraph: {
+    title: "Climbit | AI Climate Decision Engine",
+    description: "Discover the single highest-ROI climate action tailored for your lifestyle.",
+    url: "https://climbit.app",
+    siteName: "Climbit",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Climbit",
+    description: "The AI Climate Decision Engine.",
+  },
 };
 
 export default function RootLayout({
